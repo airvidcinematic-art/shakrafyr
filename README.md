@@ -16,7 +16,7 @@ Detect source A4 → choose target A4 (fixed concert pitch **or** the A4 that ma
 
 ## Status
 
-Detector + tempo-preserving pitch shift are live (ffmpeg `rubberband`, not resample). First desktop slice is the neon-glass shell (Tauri v2 + Vite, **port 1432** — not 1421).
+Detector + tempo-preserving pitch shift are live (ffmpeg `rubberband`, not resample). Desktop window on **port 1432**.
 
 ```bash
 python tools/detect_tuning.py "track.mp3" --target concert_432 --out "ConvertedLibrary/track [concert_432_A432].wav"
@@ -24,4 +24,4 @@ python -m pytest tests/ -q
 npm run tauri dev   # Convert432 window; http://localhost:1432
 ```
 
-Originals are never overwritten. Duration stays put. Python CLI is still the convert path; live detect/rubberband IPC is not wired yet.
+In the app: **ADD** a file → detect A4 → **Play** / **Apply to Play** (shifts to a temp sidecar, original untouched) → **Queue Convert** writes `ConvertedLibrary/`. Preview A = retune, Preview B = original. Git: `main` stable, `dev` daily (this tree). No remote until you ask.
