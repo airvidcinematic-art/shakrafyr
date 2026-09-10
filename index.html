@@ -611,12 +611,12 @@
         <div class="brand-icon">♫</div>
         <span>Convert432</span>
       </div>
-      <div class="meta">Detected A4 · 440.1 Hz</div>
+      <div class="meta" id="playerMeta">ADD a track to detect A4</div>
     </div>
     <div class="pad">
-      <div class="timer" id="timer">0:25</div>
-      <div class="title">Octopus’s Garden · The Beatles</div>
-      <div class="subtitle">A4_src = 440.1 Hz  ·  FLAC 44.1/16</div>
+      <div class="timer" id="timer">0:00</div>
+      <div class="title" id="trackTitle">Convert432</div>
+      <div class="subtitle" id="trackSub">Originals never overwritten · rubberband pitch, tempo held</div>
 
       <div class="tuning-strip">
         <div class="tuning-row">
@@ -652,12 +652,12 @@
 
       <div class="transport">
         <div class="transport-left">
-          <button class="icon-btn">⏮</button>
-          <button class="icon-btn">⏪</button>
-          <button class="icon-btn primary" id="playBtn">▶</button>
-          <button class="icon-btn">⏹</button>
-          <button class="icon-btn">⏩</button>
-          <button class="icon-btn">⏭</button>
+          <button class="icon-btn" id="btnPrev" title="Previous">⏮</button>
+          <button class="icon-btn" id="btnRew" title="Back 5s">⏪</button>
+          <button class="icon-btn primary" id="playBtn" title="Play">▶</button>
+          <button class="icon-btn" id="btnStop" title="Stop">⏹</button>
+          <button class="icon-btn" id="btnFwd" title="Forward 5s">⏩</button>
+          <button class="icon-btn" id="btnNext" title="Next">⏭</button>
         </div>
         <div class="transport-right">
           <button class="chip">SHUFFLE</button>
@@ -734,8 +734,8 @@
           <button class="active" id="btnA" onclick="setAB('A')">Preview A</button>
           <button id="btnB" onclick="setAB('B')">Preview B</button>
         </div>
-        <button class="action-btn">Apply to Play</button>
-        <button class="action-btn secondary">Queue Convert</button>
+        <button class="action-btn" id="btnApply">Apply to Play</button>
+        <button class="action-btn secondary" id="btnConvert">Queue Convert</button>
       </div>
     </div>
 
@@ -784,7 +784,7 @@
         <div class="brand-icon">☰</div>
         <span>Playlist</span>
       </div>
-      <div class="meta">Library · 3 tracks</div>
+      <div class="meta" id="playlistMeta">Library · 0 tracks</div>
     </div>
     <div class="list-header">
       <div>#</div>
@@ -792,39 +792,21 @@
       <div>Duration</div>
       <div>Preset</div>
     </div>
-    <div class="track active">
-      <div class="track-num">01</div>
-      <div class="track-title">Octopus’s Garden</div>
-      <div class="track-meta">2:50</div>
-      <div class="track-meta"><span class="badge concert">A432</span></div>
-    </div>
-    <div class="track">
-      <div class="track-num">02</div>
-      <div class="track-title">Octopus’s Garden — Heart C528</div>
-      <div class="track-meta">2:50</div>
-      <div class="track-meta"><span class="badge heart">C528</span></div>
-    </div>
-    <div class="track">
-      <div class="track-num">03</div>
-      <div class="track-title">Octopus’s Garden — Throat F#741</div>
-      <div class="track-meta">2:50</div>
-      <div class="track-meta"><span class="badge throat">F#741</span></div>
-    </div>
+    <div id="playlistBody"></div>
     <div class="list-actions">
-      <button class="small-chip">ADD</button>
-      <button class="small-chip">REM</button>
-      <button class="small-chip">SEL</button>
-      <button class="small-chip">MISC</button>
+      <button class="small-chip" id="btnAdd">ADD</button>
+      <button class="small-chip" id="btnRem">REM</button>
       <span style="flex:1"></span>
-      <button class="small-chip">LIST OPTS ▾</button>
+      <button class="small-chip" id="btnOpenLib">LIBRARY</button>
     </div>
   </section>
 </div>
+<audio id="elAudio" preload="auto"></audio>
 
 <script>
   // ---- Mode owns presets. Concert A = historical A4; Solfeggio = note locks. ----
-  const SRC = 440.1;
-  function centsFromSrc(a4) { return 1200 * Math.log2(a4 / SRC); }
+  const SRC = 440.0;
+  function centsFromSrc(a4) { return 1200 * Math.log2(a4 / state.srcA4); }
   function concert(id, chip, label, a4, desc) {
     return { id, mode: 'concert_a', chip, label, lock: `A4 = ${a4.toFixed(2)}`, a4, desc, kind: 'concert' };
   }
@@ -1016,21 +998,20 @@
     if (state.mode === 'concert_a') state.preset = 'verdi_432';
     if (state.mode === 'solfeggio_lock') state.preset = 'heart_528';
     updateReadout();
+    if (engine.playing()) engine.playLive();
   }
   function setPreset(el) {
     state.preset = el.dataset.preset;
     updateReadout();
+    if (engine.playing()) engine.playLive();
   }
   function setAB(side) {
     state.ab = side;
     document.getElementById('btnA').className = side === 'A' ? 'active' : '';
     document.getElementById('btnB').className = side === 'B' ? 'active' : '';
     updateReadout();
+    if (engine.playing()) engine.playLive();
   }
-  document.getElementById('playBtn').addEventListener('click', () => {
-    const playing = document.getElementById('playBtn').textContent === '❚❚';
-    document.getElementById('playBtn').textContent = playing ? '▶' : '❚❚';
-  });
 
   // ---- Pitch detection representation (mock of tools/detect_tuning.py) ----
   const histCanvas = document.getElementById('histCanvas');
@@ -1133,26 +1114,237 @@
     ctx.textAlign = 'left';
   }
   function updateDetectionViz() {
-    const a4 = state.srcA4;
-    const tau = tauFromA4(a4);
+    const t = engine.current();
+    const a4 = t ? t.a4_hz : state.srcA4;
+    const tau = t && t.offset_bins != null ? t.offset_bins : tauFromA4(a4);
     const cents = 1200 * Math.log2(a4 / 440);
-    // mock confidence higher when closer to a "clean" detection
-    const conf = Math.max(0.55, Math.min(0.97, 0.92 - Math.abs(tau) * 0.15));
-    const peaks = 980 + Math.floor(Math.abs(tau) * 400) + Math.floor((a4 % 1) * 80);
+    const conf = t && t.confidence != null
+      ? t.confidence
+      : Math.max(0.55, Math.min(0.97, 0.92 - Math.abs(tau) * 0.15));
+    const peaks = t && t.n_peaks != null
+      ? t.n_peaks
+      : (980 + Math.floor(Math.abs(tau) * 400) + Math.floor((a4 % 1) * 80));
     detNoise = seedPc(a4);
 
     document.getElementById('detA4').textContent = a4.toFixed(2) + ' Hz';
-    document.getElementById('detTau').textContent = (tau >= 0 ? '+' : '') + tau.toFixed(4) + ' bin';
+    document.getElementById('detTau').textContent = (tau >= 0 ? '+' : '') + Number(tau).toFixed(4) + ' bin';
     document.getElementById('detCents').textContent = (cents >= 0 ? '+' : '') + cents.toFixed(2) + ' ¢';
     document.getElementById('detCents').style.color = centsColor(cents);
-    document.getElementById('detConf').textContent = conf.toFixed(3);
+    document.getElementById('detConf').textContent = Number(conf).toFixed(3);
     document.getElementById('detPeaks').textContent = String(peaks);
-    document.getElementById('detMethod').textContent = 'stft_residual_histogram';
+    document.getElementById('detMethod').textContent = (t && t.method) || 'stft_residual_histogram';
 
     drawHist(tau, conf);
     drawPc(detNoise, true);
   }
   window.addEventListener('resize', () => updateDetectionViz());
+
+  // ---- Live engine (Tauri invoke → python detect/shift) ----
+  const engine = (() => {
+    const audio = document.getElementById('elAudio');
+    const playlist = [];
+    let idx = -1;
+    let busy = false;
+    let keepTime = 0;
+
+    function core() { return window.__TAURI__ && window.__TAURI__.core; }
+    function invoke(cmd, args) {
+      const c = core();
+      if (!c) return Promise.reject(new Error('Open the Convert432 window (not the browser mock).'));
+      return c.invoke(cmd, args);
+    }
+    function fileSrc(path) { return core().convertFileSrc(path); }
+    function playing() { return audio && !audio.paused && !audio.ended && audio.src; }
+    function current() { return idx >= 0 ? playlist[idx] : null; }
+    function fmt(s) {
+      s = Math.max(0, Number(s) || 0);
+      return Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+    }
+    function meta(msg) {
+      const el = document.getElementById('playerMeta');
+      if (el) el.textContent = msg;
+    }
+    function lockParts(p) {
+      if (!p || p.kind !== 'solfeggio') return { pc: 'A', hz: Math.round(p ? p.a4 : 432) };
+      const m = String(p.lock).match(/([A-G])([♯#s])?\d?\s*=\s*([\d.]+)/);
+      if (m) return { pc: m[1] + (m[2] ? 's' : ''), hz: Math.round(+m[3]) };
+      const h = String(p.lock).match(/([\d.]+)\s*$/);
+      return { pc: 'H', hz: h ? Math.round(+h[1]) : Math.round(p.a4) };
+    }
+    function badge() {
+      const p = resolvePreset();
+      if (state.mode === 'bypass') return 'ORIG';
+      if (p.kind === 'concert') return 'A' + Math.round(p.a4);
+      const lp = lockParts(p);
+      return lp.pc + lp.hz;
+    }
+    function renderPlaylist() {
+      const box = document.getElementById('playlistBody');
+      const n = playlist.length;
+      document.getElementById('playlistMeta').textContent = 'Library · ' + n + ' track' + (n === 1 ? '' : 's');
+      if (!n) {
+        box.innerHTML = '<div class="track"><div class="track-num">—</div><div class="track-title">ADD a wav / mp3 / flac</div><div class="track-meta"></div><div class="track-meta"></div></div>';
+        return;
+      }
+      box.innerHTML = '';
+      playlist.forEach((t, i) => {
+        const row = document.createElement('div');
+        row.className = 'track' + (i === idx ? ' active' : '');
+        row.innerHTML =
+          '<div class="track-num">' + String(i + 1).padStart(2, '0') + '</div>' +
+          '<div class="track-title"></div>' +
+          '<div class="track-meta">' + fmt(t.duration_s) + '</div>' +
+          '<div class="track-meta"><span class="badge ' + (state.mode === 'solfeggio_lock' ? 'heart' : 'concert') + '">' + badge() + '</span></div>';
+        row.querySelector('.track-title').textContent = t.stem || t.name;
+        row.onclick = () => select(i, true);
+        box.appendChild(row);
+      });
+    }
+    function select(i, autoplay) {
+      if (i < 0 || i >= playlist.length) return;
+      idx = i;
+      const t = playlist[idx];
+      state.srcA4 = t.a4_hz;
+      document.getElementById('trackTitle').textContent = t.stem || t.name;
+      document.getElementById('trackSub').textContent =
+        'A4_src = ' + t.a4_hz.toFixed(2) + ' Hz  ·  ' + fmt(t.duration_s) +
+        '  ·  conf ' + Number(t.confidence).toFixed(2);
+      meta('Detected A4 · ' + t.a4_hz.toFixed(2) + ' Hz');
+      updateReadout();
+      renderPlaylist();
+      if (autoplay) playLive();
+    }
+    async function addFiles() {
+      if (busy) return;
+      busy = true;
+      meta('Opening files…');
+      try {
+        const paths = await invoke('pick_audio_files');
+        for (const path of paths) {
+          meta('Detecting ' + path.split(/[/\\]/).pop() + '…');
+          const det = await invoke('detect_tuning', { path });
+          playlist.push(det);
+        }
+        if (idx < 0 && playlist.length) select(0, false);
+        else renderPlaylist();
+        meta(playlist.length ? ('Detected A4 · ' + (current()?.a4_hz.toFixed(2) || '—') + ' Hz') : 'ADD a track');
+      } catch (e) {
+        meta(String(e));
+      } finally {
+        busy = false;
+      }
+    }
+    function removeCurrent() {
+      if (idx < 0) return;
+      audio.pause();
+      playlist.splice(idx, 1);
+      if (!playlist.length) {
+        idx = -1;
+        document.getElementById('trackTitle').textContent = 'Convert432';
+        document.getElementById('trackSub').textContent = 'Originals never overwritten · rubberband pitch, tempo held';
+        document.getElementById('playBtn').textContent = '▶';
+        renderPlaylist();
+        return;
+      }
+      select(Math.min(idx, playlist.length - 1), false);
+    }
+    function playRatio() {
+      const t = current();
+      if (!t) return 1;
+      if (state.ab === 'B' || state.mode === 'bypass') return 1;
+      const p = resolvePreset();
+      return p.a4 / t.a4_hz;
+    }
+    async function playLive() {
+      const t = current();
+      if (!t) { meta('ADD a track first'); return; }
+      if (busy) return;
+      busy = true;
+      keepTime = audio.currentTime || 0;
+      const ratio = playRatio();
+      meta(Math.abs(ratio - 1) < 1e-9 ? 'Playing original…' : 'Shifting (tempo held)…');
+      try {
+        const prep = await invoke('prepare_play', { path: t.path, ratio });
+        audio.src = fileSrc(prep.path);
+        if (keepTime > 0.25) audio.currentTime = keepTime;
+        await audio.play();
+        document.getElementById('playBtn').textContent = '❚❚';
+        meta(Math.abs(ratio - 1) < 1e-9 ? 'Original' : ('Playing · ratio ' + ratio.toFixed(4)));
+      } catch (e) {
+        meta(String(e));
+        document.getElementById('playBtn').textContent = '▶';
+      } finally {
+        busy = false;
+      }
+    }
+    async function togglePlay() {
+      if (!current()) { await addFiles(); return; }
+      if (playing()) { audio.pause(); document.getElementById('playBtn').textContent = '▶'; return; }
+      if (audio.src && Math.abs((audio.duration || 0) - (current().duration_s || 0)) < 2) {
+        try { await audio.play(); document.getElementById('playBtn').textContent = '❚❚'; return; } catch (_) {}
+      }
+      await playLive();
+    }
+    function stop() {
+      audio.pause();
+      audio.currentTime = 0;
+      document.getElementById('playBtn').textContent = '▶';
+      document.getElementById('timer').textContent = '0:00';
+    }
+    async function queueConvert() {
+      const t = current();
+      if (!t) { meta('ADD a track first'); return; }
+      const p = resolvePreset();
+      const ratio = state.mode === 'bypass' ? 1 : (p.a4 / t.a4_hz);
+      const lp = lockParts(p);
+      const presetId = state.mode === 'bypass' ? 'bypass' : p.id;
+      busy = true;
+      meta('Converting…');
+      try {
+        const dir = await invoke('library_dir');
+        const name = await invoke('library_filename', {
+          stem: t.stem, presetId, pc: lp.pc, hz: lp.hz,
+        });
+        const dest = dir.replace(/[/\\]+$/, '') + '\\' + name;
+        await invoke('convert_track', { path: t.path, ratio, dest });
+        meta('Wrote ' + name);
+      } catch (e) {
+        meta(String(e));
+      } finally {
+        busy = false;
+      }
+    }
+    audio.addEventListener('timeupdate', () => {
+      document.getElementById('timer').textContent = fmt(audio.currentTime);
+      const dur = audio.duration || current()?.duration_s || 0;
+      if (dur > 0) {
+        const pct = (audio.currentTime / dur) * 100;
+        const fill = document.getElementById('scrubFill');
+        const thumb = document.getElementById('scrubThumb');
+        if (fill) fill.style.width = pct + '%';
+        if (thumb) thumb.style.left = pct + '%';
+      }
+    });
+    audio.addEventListener('ended', () => {
+      document.getElementById('playBtn').textContent = '▶';
+      if (idx + 1 < playlist.length) select(idx + 1, true);
+    });
+    document.getElementById('playBtn').addEventListener('click', () => togglePlay());
+    document.getElementById('btnStop').addEventListener('click', () => stop());
+    document.getElementById('btnPrev').addEventListener('click', () => select(Math.max(0, idx - 1), true));
+    document.getElementById('btnNext').addEventListener('click', () => select(Math.min(playlist.length - 1, idx + 1), true));
+    document.getElementById('btnRew').addEventListener('click', () => { audio.currentTime = Math.max(0, (audio.currentTime || 0) - 5); });
+    document.getElementById('btnFwd').addEventListener('click', () => { audio.currentTime = (audio.currentTime || 0) + 5; });
+    document.getElementById('btnAdd').addEventListener('click', () => addFiles());
+    document.getElementById('btnRem').addEventListener('click', () => removeCurrent());
+    document.getElementById('btnApply').addEventListener('click', () => playLive());
+    document.getElementById('btnConvert').addEventListener('click', () => queueConvert());
+    document.getElementById('btnOpenLib').addEventListener('click', async () => {
+      try { meta(await invoke('library_dir')); } catch (e) { meta(String(e)); }
+    });
+    renderPlaylist();
+    return { playing, current, playLive, addFiles };
+  })();
 
   updateReadout();
 </script>

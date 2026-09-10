@@ -80,6 +80,8 @@ def shift_file(src: str | Path, dst: str | Path, ratio: float) -> None:
     dst = Path(dst)
     if not src.exists():
         raise FileNotFoundError(src)
+    if dst.resolve() == src.resolve():
+        raise ValueError("refusing to overwrite the original")
     dst.parent.mkdir(parents=True, exist_ok=True)
     ffmpeg = find_ffmpeg()
     if abs(ratio - 1.0) < 1e-12:
