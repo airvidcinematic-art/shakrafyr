@@ -1,0 +1,1141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Convert432 — Neon Glass Jukebox</title>
+<style>
+  @font-face {
+    font-family: 'Azo Sans';
+    src: url('fonts/AzoSans-Thin.ttf') format('truetype');
+    font-weight: 100;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Azo Sans';
+    src: url('fonts/AzoSans-Light.ttf') format('truetype');
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Azo Sans';
+    src: url('fonts/AzoSans-Regular.ttf') format('truetype');
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Azo Sans';
+    src: url('fonts/AzoSans-Medium.ttf') format('truetype');
+    font-weight: 500;
+    font-style: normal;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: 'Azo Sans';
+    src: url('fonts/AzoSans-Bold.ttf') format('truetype');
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+  }
+  :root {
+    --c432-bg-deep: #05000a;
+    --c432-bg-grid: #0a0015;
+    --c432-bg-panel: rgba(20, 5, 40, 0.65);
+    --c432-cyan: #00f3ff;
+    --c432-cyan-dim: rgba(0, 243, 255, 0.35);
+    --c432-cyan-glow: rgba(0, 243, 255, 0.6);
+    --c432-magenta: #bd00ff;
+    --c432-magenta-dim: rgba(189, 0, 255, 0.45);
+    --c432-magenta-glow: rgba(189, 0, 255, 0.5);
+    --c432-text: #ffffff;
+    --c432-text-secondary: #e0e0e0;
+    --c432-text-dim: #8a7fa8;
+    --c432-text-lcd: #00f3ff;
+    --c432-border: rgba(0, 243, 255, 0.35);
+    --c432-border-magenta: rgba(189, 0, 255, 0.4);
+    --c432-ok: #00f3ff;
+    --c432-warn: #ffcc00;
+    --c432-danger: #ff2a6d;
+    --c432-bypass: #8a7fa8;
+    --c432-font: 'Azo Sans', 'AzoSans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+    --c432-font-display: var(--c432-font);
+    --c432-font-mono: var(--c432-font);
+    --c432-font-lcd: var(--c432-font);
+    --c432-fs-xs: 10px;
+    --c432-fs-sm: 12px;
+    --c432-fs-md: 14px;
+    --c432-fs-lg: 22px;
+    --c432-fs-timer: clamp(36px, 7.6vw, 56px);
+    --c432-radius: 4px;
+    --c432-radius-btn: 2px;
+    --c432-blur: 14px;
+    --c432-panel-shadow: 0 0 24px rgba(189, 0, 255, 0.18), inset 0 0 44px rgba(0, 0, 0, 0.4);
+    --c432-neon-cyan: 0 0 6px var(--c432-cyan-glow), 0 0 14px rgba(0, 243, 255, 0.35);
+    --c432-neon-magenta: 0 0 6px var(--c432-magenta-glow), 0 0 16px rgba(189, 0, 255, 0.3);
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    height: 100%;
+    margin: 0;
+    background:
+      radial-gradient(circle at 20% 10%, rgba(189,0,255,0.10) 0px, transparent 220px),
+      radial-gradient(circle at 80% 30%, rgba(0,243,255,0.06) 0px, transparent 260px),
+      linear-gradient(180deg, #060010 0%, #040008 100%);
+    color: var(--c432-text);
+    font-family: var(--c432-font);
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+  }
+  body::before {
+    content: "";
+    position: fixed; inset: 0;
+    background-image:
+      linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
+    background-size: 28px 28px, 28px 28px;
+    pointer-events: none;
+  }
+  .stage {
+    max-width: 520px;
+    margin: 18px auto;
+    padding: 0 12px 36px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .panel {
+    background: var(--c432-bg-panel);
+    border: 1px solid var(--c432-border);
+    border-radius: var(--c432-radius);
+    box-shadow: var(--c432-panel-shadow);
+    backdrop-filter: blur(var(--c432-blur));
+    position: relative;
+    overflow: hidden;
+  }
+  .panel::after {
+    content: "";
+    position: absolute; inset: 0;
+    border-radius: inherit;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.03);
+    pointer-events: none;
+  }
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 12px;
+    border-bottom: 1px solid rgba(0,243,255,0.12);
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--c432-font-display);
+    letter-spacing: 0.18em;
+    font-size: 12px;
+  }
+  .brand-icon {
+    width: 26px; height: 26px;
+    border: 1.5px solid var(--c432-cyan);
+    border-radius: 50%;
+    display: grid; place-items: center;
+    color: var(--c432-cyan);
+    box-shadow: var(--c432-neon-cyan);
+  }
+  .meta {
+    color: var(--c432-text-dim);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .pad { padding: 12px; }
+
+  /* PLAYER */
+  .timer {
+    font-family: var(--c432-font-lcd);
+    font-size: var(--c432-fs-timer);
+    color: var(--c432-text-lcd);
+    text-shadow: 0 0 18px var(--c432-cyan-glow), 0 0 2px rgba(0,0,0,0.9);
+    line-height: 1;
+  }
+  .timer.muted { color: var(--c432-bypass); text-shadow: none; }
+  .title {
+    font-family: var(--c432-font-display);
+    font-size: 12px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    margin-top: 8px;
+  }
+  .subtitle { color: var(--c432-text-dim); font-size: 10px; margin-top: 4px; letter-spacing: 0.08em; }
+  .tuning-strip {
+    margin-top: 10px;
+    padding: 8px 10px;
+    background: rgba(0,0,0,0.3);
+    border: 1px solid rgba(189,0,255,0.35);
+    border-radius: var(--c432-radius);
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.55);
+  }
+  .tuning-row { display: flex; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+  .tuning-cell { display: flex; flex-direction: column; gap: 2px; }
+  .tuning-label { font-size: 9px; color: var(--c432-text-dim); letter-spacing: 0.14em; text-transform: uppercase; }
+  .tuning-value { font-family: var(--c432-font-lcd); font-size: 12px; color: var(--c432-cyan); }
+  .tuning-value.warn { color: var(--c432-warn); }
+  .tuning-value.danger { color: var(--c432-danger); }
+
+  .scrubber { margin-top: 12px; }
+  .scrubber-track {
+    height: 6px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 3px;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid rgba(189,0,255,0.18);
+  }
+  .scrubber-fill {
+    position: absolute; inset: 0 auto 0 0;
+    width: 34%;
+    background: linear-gradient(90deg, var(--c432-magenta), var(--c432-cyan));
+    box-shadow: var(--c432-neon-cyan);
+  }
+  .scrubber-thumb {
+    position: absolute; left: 34%; top: 50%;
+    width: 10px; height: 10px;
+    background: var(--c432-cyan);
+    box-shadow: var(--c432-neon-cyan);
+    transform: translate(-50%, -50%);
+  }
+
+  .transport {
+    margin-top: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .transport-left, .transport-right { display: flex; align-items: center; gap: 8px; }
+  .icon-btn {
+    width: 36px; height: 36px;
+    background: rgba(0,0,0,0.3);
+    color: var(--c432-text);
+    border: 1px solid var(--c432-border);
+    display: grid; place-items: center;
+    cursor: pointer;
+    font-family: var(--c432-font-display);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    transition: background 0.15s ease, box-shadow 0.15s ease;
+  }
+  .icon-btn:hover { background: rgba(0,243,255,0.12); box-shadow: var(--c432-neon-cyan); }
+  .icon-btn.primary {
+    width: 46px; height: 46px; border-radius: 50%;
+    background: rgba(0,243,255,0.10);
+    border-color: var(--c432-cyan);
+    color: var(--c432-cyan);
+    box-shadow: var(--c432-neon-cyan);
+  }
+  .chip {
+    padding: 4px 10px;
+    border: 1px solid var(--c432-border);
+    color: var(--c432-text-dim);
+    font-family: var(--c432-font-display);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    background: transparent;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .chip:hover { background: rgba(0,243,255,0.10); color: var(--c432-text); }
+  .chip.active {
+    background: rgba(0,243,255,0.18);
+    color: var(--c432-cyan);
+    border-color: var(--c432-cyan);
+    box-shadow: 0 0 12px var(--c432-cyan-glow);
+  }
+
+  /* WAVEFORM */
+  /* PITCH DETECTION (replaces EQ) */
+  .detect-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  .detect-card {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(0,243,255,0.18);
+    padding: 8px 10px;
+    box-shadow: inset 0 0 18px rgba(0,0,0,0.45);
+  }
+  .detect-card.full { grid-column: 1 / -1; }
+  .detect-k {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c432-text-dim);
+  }
+  .detect-v {
+    font-family: var(--c432-font-lcd);
+    font-size: 16px;
+    color: var(--c432-cyan);
+    margin-top: 2px;
+    text-shadow: 0 0 10px var(--c432-cyan-glow);
+  }
+  .detect-v.dim { color: var(--c432-text-secondary); font-size: 12px; text-shadow: none; }
+  #histCanvas, #pcCanvas {
+    width: 100%;
+    display: block;
+    margin-top: 6px;
+  }
+  #histCanvas { height: 88px; }
+  #pcCanvas { height: 72px; }
+  .detect-legend {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 9px;
+    color: var(--c432-text-dim);
+    letter-spacing: 0.08em;
+  }
+  .detect-pipe {
+    margin-top: 8px;
+    font-size: 10px;
+    color: var(--c432-text-dim);
+    letter-spacing: 0.04em;
+    line-height: 1.4;
+  }
+  .detect-pipe b { color: var(--c432-magenta); font-weight: 400; }
+
+  /* RE-TUNE */
+  .re-section { margin-top: 10px; }
+  .section-title {
+    font-family: var(--c432-font-display);
+    font-size: 11px;
+    letter-spacing: 0.2em;
+    color: var(--c432-magenta);
+    text-shadow: var(--c432-neon-magenta);
+  }
+  .mode-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .preset-chips { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 8px; }
+  .preset-chip {
+    padding: 5px 10px;
+    border: 1px solid var(--c432-border-magenta);
+    color: var(--c432-text-secondary);
+    background: rgba(189,0,255,0.08);
+    cursor: pointer;
+    font-family: var(--c432-font-mono);
+    font-size: 11px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+  .preset-chip:hover { background: rgba(189,0,255,0.22); color: var(--c432-text); }
+  .preset-chip.active {
+    background: rgba(189,0,255,0.28);
+    color: #fff;
+    border-color: var(--c432-magenta);
+    box-shadow: var(--c432-neon-magenta);
+  }
+  .lcd-readout {
+    margin-top: 12px;
+    padding: 12px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.55), rgba(8,0,18,0.72));
+    border: 1px solid rgba(0,243,255,0.28);
+    box-shadow: inset 0 0 28px rgba(0,0,0,0.55), 0 0 18px rgba(0,243,255,0.08);
+    border-radius: 2px;
+  }
+  .lcd-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 10px;
+  }
+  .lcd-title {
+    font-family: var(--c432-font);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    color: var(--c432-cyan);
+    text-shadow: 0 0 12px var(--c432-cyan-glow);
+    line-height: 1.25;
+  }
+  .lcd-sub {
+    margin-top: 6px;
+    font-size: 11px;
+    color: var(--c432-text-dim);
+    letter-spacing: 0.01em;
+    line-height: 1.45;
+    max-width: 42em;
+  }
+  .lcd-status {
+    flex-shrink: 0;
+    padding: 4px 8px;
+    border: 1px solid var(--c432-border);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--c432-cyan);
+  }
+  .lcd-status.warn { color: var(--c432-warn); border-color: var(--c432-warn); }
+  .lcd-status.danger { color: var(--c432-danger); border-color: var(--c432-danger); }
+  .lcd-status.bypass { color: var(--c432-bypass); border-color: rgba(138,127,168,0.5); }
+  .lcd-metrics {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+  @media (max-width: 420px) {
+    .lcd-metrics { grid-template-columns: 1fr 1fr; }
+  }
+  .lcd-metric {
+    background: rgba(0,0,0,0.35);
+    border: 1px solid rgba(189,0,255,0.22);
+    padding: 8px 8px 7px;
+    min-width: 0;
+  }
+  .lcd-metric .k {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--c432-text-dim);
+  }
+  .lcd-metric .v {
+    margin-top: 4px;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--c432-text);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .lcd-metric .v.accent { color: var(--c432-cyan); text-shadow: 0 0 10px var(--c432-cyan-glow); }
+  .cents-meter {
+    margin-top: 10px;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 10px 12px;
+    align-items: center;
+  }
+  .cents-scale {
+    display: flex;
+    justify-content: space-between;
+    font-size: 9px;
+    color: var(--c432-text-dim);
+    letter-spacing: 0.08em;
+    grid-column: 1 / 2;
+  }
+  .cents-track {
+    grid-column: 1 / 2;
+    height: 10px;
+    background: rgba(255,255,255,0.06);
+    border: 1px solid rgba(189,0,255,0.28);
+    position: relative;
+    border-radius: 1px;
+  }
+  .cents-center {
+    position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+    background: rgba(255,255,255,0.45);
+  }
+  .cents-fill {
+    position: absolute; top: 0; bottom: 0;
+    background: linear-gradient(90deg, rgba(189,0,255,0.15), rgba(0,243,255,0.35));
+    opacity: 0.9;
+    transition:
+      left 0.55s cubic-bezier(0.83, 0, 0.17, 1),
+      width 0.55s cubic-bezier(0.83, 0, 0.17, 1);
+  }
+  .cents-dot {
+    position: absolute; top: 50%;
+    width: 12px; height: 12px;
+    background: var(--c432-cyan);
+    box-shadow: var(--c432-neon-cyan);
+    transform: translate(-50%, -50%);
+    border-radius: 1px;
+    transition:
+      left 0.55s cubic-bezier(0.83, 0, 0.17, 1),
+      background 0.35s ease,
+      box-shadow 0.35s ease;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cents-fill, .cents-dot { transition-duration: 0.12s; }
+  }
+  .cents-readout {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3;
+    font-size: 18px;
+    font-weight: 500;
+    color: var(--c432-cyan);
+    min-width: 78px;
+    text-align: right;
+    letter-spacing: 0.02em;
+    text-shadow: 0 0 12px var(--c432-cyan-glow);
+  }
+  .preset-hint {
+    margin-top: 8px;
+    color: var(--c432-text-dim);
+    font-size: 11px;
+    line-height: 1.4;
+    letter-spacing: 0.01em;
+  }
+  .re-actions {
+    margin-top: 12px;
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .action-btn {
+    padding: 6px 10px;
+    background: rgba(0,243,255,0.10);
+    border: 1px solid var(--c432-cyan);
+    color: var(--c432-cyan);
+    font-family: var(--c432-font-display);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .action-btn:hover { background: rgba(0,243,255,0.22); }
+  .action-btn.secondary {
+    background: rgba(189,0,255,0.10);
+    border-color: var(--c432-magenta);
+    color: var(--c432-magenta);
+  }
+  .action-btn.secondary:hover { background: rgba(189,0,255,0.22); }
+  .ab-toggle {
+    display: inline-flex;
+    border: 1px solid var(--c432-border);
+    overflow: hidden;
+  }
+  .ab-toggle button {
+    background: transparent;
+    border: none;
+    color: var(--c432-text-dim);
+    padding: 6px 10px;
+    font-family: var(--c432-font-display);
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    cursor: pointer;
+  }
+  .ab-toggle button.active {
+    background: rgba(0,243,255,0.18);
+    color: var(--c432-cyan);
+    box-shadow: inset 0 0 10px rgba(0,243,255,0.25);
+  }
+
+  /* PLAYLIST */
+  .list-header {
+    display: grid;
+    grid-template-columns: 28px 1fr 70px 90px;
+    gap: 8px;
+    padding: 6px 10px;
+    color: var(--c432-text-dim);
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    border-bottom: 1px solid rgba(0,243,255,0.12);
+  }
+  .track {
+    display: grid;
+    grid-template-columns: 28px 1fr 70px 90px;
+    gap: 8px;
+    padding: 7px 10px;
+    border-bottom: 1px solid rgba(189,0,255,0.10);
+    cursor: pointer;
+    transition: background 0.15s ease;
+  }
+  .track:hover { background: rgba(0,243,255,0.08); }
+  .track.active { background: rgba(189,0,255,0.18); }
+  .track-num { color: var(--c432-cyan); font-family: var(--c432-font-lcd); font-size: 12px; }
+  .track-title { color: var(--c432-text); font-size: 12px; letter-spacing: 0.06em; }
+  .track-meta { color: var(--c432-text-dim); font-size: 10px; }
+  .badge {
+    display: inline-block;
+    padding: 2px 6px;
+    border: 1px solid;
+    font-family: var(--c432-font-display);
+    font-size: 9px;
+    letter-spacing: 0.1em;
+    margin-left: 6px;
+  }
+  .badge.concert { color: var(--c432-cyan); border-color: var(--c432-cyan); }
+  .badge.heart { color: var(--c432-magenta); border-color: var(--c432-magenta); }
+  .badge.throat { color: var(--c432-warn); border-color: var(--c432-warn); }
+  .list-actions {
+    display: flex; gap: 6px; flex-wrap: wrap;
+    padding: 8px 10px;
+  }
+  .small-chip {
+    padding: 4px 8px;
+    border: 1px solid var(--c432-border);
+    color: var(--c432-text-dim);
+    background: transparent;
+    font-family: var(--c432-font-display);
+    font-size: 9px;
+    letter-spacing: 0.12em;
+    cursor: pointer;
+  }
+  .small-chip:hover { color: var(--c432-text); background: rgba(0,243,255,0.08); }
+
+  .divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(189,0,255,0.45), transparent); margin: 6px 0; }
+  .small-label { font-size: 10px; color: var(--c432-text-dim); letter-spacing: 0.1em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="stage">
+  <!-- PLAYER -->
+  <section class="panel">
+    <div class="panel-header">
+      <div class="brand">
+        <div class="brand-icon">♫</div>
+        <span>Convert432</span>
+      </div>
+      <div class="meta">Detected A4 · 440.1 Hz</div>
+    </div>
+    <div class="pad">
+      <div class="timer" id="timer">0:25</div>
+      <div class="title">Octopus’s Garden · The Beatles</div>
+      <div class="subtitle">A4_src = 440.1 Hz  ·  FLAC 44.1/16</div>
+
+      <div class="tuning-strip">
+        <div class="tuning-row">
+          <div class="tuning-cell">
+            <div class="tuning-label">Mode</div>
+            <div class="tuning-value" id="modeLabel">Concert A</div>
+          </div>
+          <div class="tuning-cell">
+            <div class="tuning-label">Lock</div>
+            <div class="tuning-value" id="lockLabel">A4 = 432.00 Hz</div>
+          </div>
+          <div class="tuning-cell">
+            <div class="tuning-label">Target A4</div>
+            <div class="tuning-value" id="a4Target">432.00</div>
+          </div>
+          <div class="tuning-cell">
+            <div class="tuning-label">Shift</div>
+            <div class="tuning-value" id="shiftLabel">−31.8 ¢</div>
+          </div>
+          <div class="tuning-cell">
+            <div class="tuning-label">Status</div>
+            <div class="tuning-value" id="statusLabel">ok</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scrubber">
+        <div class="scrubber-track">
+          <div class="scrubber-fill" id="scrubFill"></div>
+          <div class="scrubber-thumb" id="scrubThumb"></div>
+        </div>
+      </div>
+
+      <div class="transport">
+        <div class="transport-left">
+          <button class="icon-btn">⏮</button>
+          <button class="icon-btn">⏪</button>
+          <button class="icon-btn primary" id="playBtn">▶</button>
+          <button class="icon-btn">⏹</button>
+          <button class="icon-btn">⏩</button>
+          <button class="icon-btn">⏭</button>
+        </div>
+        <div class="transport-right">
+          <button class="chip">SHUFFLE</button>
+          <button class="chip active">REP</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- RE-TUNE / EQ STACK -->
+  <section class="panel">
+    <div class="panel-header">
+      <div class="brand">
+        <div class="brand-icon">≜</div>
+        <span>RE-Tune</span>
+      </div>
+      <div class="meta">Concert pitch + Solfeggio</div>
+    </div>
+    <div class="pad">
+      <div class="re-section">
+        <div class="small-label">Mode <span style="color:var(--c432-text-dim);letter-spacing:0.08em;font-size:9px">(top level)</span></div>
+        <div class="mode-chips">
+          <button class="chip active" data-mode="concert_a" onclick="setMode(this)">Concert A</button>
+          <button class="chip" data-mode="solfeggio_lock" onclick="setMode(this)">Solfeggio lock</button>
+          <button class="chip" data-mode="bypass" onclick="setMode(this)">Bypass</button>
+        </div>
+      </div>
+
+      <div class="re-section" id="presetSection" style="margin-top:12px">
+        <div class="small-label" id="presetSectionLabel">Presets · Concert A</div>
+        <div class="preset-chips" id="presetChips"></div>
+        <div class="preset-hint" id="presetHint"></div>
+      </div>
+
+      <div class="lcd-readout" id="lcdReadout">
+        <div class="lcd-head">
+          <div>
+            <div class="lcd-title" id="lcd1">Verdi preference A=432</div>
+            <div class="lcd-sub" id="lcdSub">Slightly below French diapason 435 · singer-friendly</div>
+          </div>
+          <div class="lcd-status" id="lcdStatus">ok</div>
+        </div>
+        <div class="lcd-metrics">
+          <div class="lcd-metric">
+            <div class="k">Source A4</div>
+            <div class="v" id="lcdSrc">440.1 Hz</div>
+          </div>
+          <div class="lcd-metric">
+            <div class="k">Target A4</div>
+            <div class="v accent" id="lcdTgt">432.00 Hz</div>
+          </div>
+          <div class="lcd-metric">
+            <div class="k">Lock</div>
+            <div class="v" id="lcdLock">A4 = 432</div>
+          </div>
+          <div class="lcd-metric">
+            <div class="k">Ratio</div>
+            <div class="v" id="lcdRatio">0.9818</div>
+          </div>
+        </div>
+        <div class="cents-meter">
+          <div class="cents-scale"><span>−50¢</span><span>0</span><span>+50¢</span></div>
+          <div class="cents-track">
+            <div class="cents-fill" id="centsFill" style="left:36.6%;width:13.4%"></div>
+            <div class="cents-center"></div>
+            <div class="cents-dot" id="centsDot" style="left:36.6%"></div>
+          </div>
+          <div class="cents-readout" id="centsReadout">−32.2 ¢</div>
+        </div>
+      </div>
+
+      <div class="re-actions">
+        <div class="ab-toggle">
+          <button class="active" id="btnA" onclick="setAB('A')">Preview A</button>
+          <button id="btnB" onclick="setAB('B')">Preview B</button>
+        </div>
+        <button class="action-btn">Apply to Play</button>
+        <button class="action-btn secondary">Queue Convert</button>
+      </div>
+    </div>
+
+    <div class="divider"></div>
+    <div class="pad" style="padding-top:10px">
+      <div class="section-title">Pitch detect</div>
+      <div class="detect-grid">
+        <div class="detect-card">
+          <div class="detect-k">A4 source</div>
+          <div class="detect-v" id="detA4">440.10 Hz</div>
+        </div>
+        <div class="detect-card">
+          <div class="detect-k">Offset τ</div>
+          <div class="detect-v" id="detTau">+0.00 bin</div>
+        </div>
+        <div class="detect-card">
+          <div class="detect-k">vs A440</div>
+          <div class="detect-v" id="detCents">+0.0 ¢</div>
+        </div>
+        <div class="detect-card">
+          <div class="detect-k">Confidence</div>
+          <div class="detect-v" id="detConf">0.89</div>
+        </div>
+        <div class="detect-card full">
+          <div class="detect-k">Residual histogram · τ (semitone bins) · peak = concert offset</div>
+          <canvas id="histCanvas"></canvas>
+          <div class="detect-legend"><span>−50¢</span><span>0 (A440 grid)</span><span>+50¢</span></div>
+        </div>
+        <div class="detect-card full">
+          <div class="detect-k">Pitch-class energy (folded peaks)</div>
+          <canvas id="pcCanvas"></canvas>
+          <div class="detect-legend"><span>C</span><span>C# D D# E F F# G G# A A# B</span><span>B</span></div>
+        </div>
+      </div>
+      <div class="detect-pipe">
+        <b>pipeline</b> STFT peaks → MIDI vs A440 → residual r=midi−round(midi) → hist peak τ →
+        A4 = 440 × 2^(τ/12) · peaks <span id="detPeaks">1240</span> · <span id="detMethod">stft_residual_histogram</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAYLIST -->
+  <section class="panel">
+    <div class="panel-header">
+      <div class="brand">
+        <div class="brand-icon">☰</div>
+        <span>Playlist</span>
+      </div>
+      <div class="meta">Library · 3 tracks</div>
+    </div>
+    <div class="list-header">
+      <div>#</div>
+      <div>Title</div>
+      <div>Duration</div>
+      <div>Preset</div>
+    </div>
+    <div class="track active">
+      <div class="track-num">01</div>
+      <div class="track-title">Octopus’s Garden</div>
+      <div class="track-meta">2:50</div>
+      <div class="track-meta"><span class="badge concert">A432</span></div>
+    </div>
+    <div class="track">
+      <div class="track-num">02</div>
+      <div class="track-title">Octopus’s Garden — Heart C528</div>
+      <div class="track-meta">2:50</div>
+      <div class="track-meta"><span class="badge heart">C528</span></div>
+    </div>
+    <div class="track">
+      <div class="track-num">03</div>
+      <div class="track-title">Octopus’s Garden — Throat F#741</div>
+      <div class="track-meta">2:50</div>
+      <div class="track-meta"><span class="badge throat">F#741</span></div>
+    </div>
+    <div class="list-actions">
+      <button class="small-chip">ADD</button>
+      <button class="small-chip">REM</button>
+      <button class="small-chip">SEL</button>
+      <button class="small-chip">MISC</button>
+      <span style="flex:1"></span>
+      <button class="small-chip">LIST OPTS ▾</button>
+    </div>
+  </section>
+</div>
+
+<script>
+  // ---- Mode owns presets. Concert A = historical A4; Solfeggio = note locks. ----
+  const SRC = 440.1;
+  function centsFromSrc(a4) { return 1200 * Math.log2(a4 / SRC); }
+  function concert(id, chip, label, a4, desc) {
+    return { id, mode: 'concert_a', chip, label, lock: `A4 = ${a4.toFixed(2)}`, a4, desc, kind: 'concert' };
+  }
+  function solf(id, chip, label, lock, a4, desc) {
+    return { id, mode: 'solfeggio_lock', chip, label, lock, a4, desc, kind: 'solfeggio' };
+  }
+
+  // label = short title in telemetry. desc = educational blurb under it (no acronym dumps in the title).
+  const CONCERT_PRESETS = [
+    concert('baroque_415', 'Bach · 415', 'Baroque chamber · A=415', 415.0,
+      'Modern historically informed pitch for Bach-era chamber music (Kammerton). About one semitone below today’s A440 — warmer and darker than modern orchestra pitch. Not a single historical law; a practical period-performance target.'),
+    concert('handel_422', 'Handel · 422.5', 'Handel fork · A=422.5', 422.5,
+      'Taken from a 1740 tuning fork associated with Handel. A concrete historical reference point in the Baroque band, slightly above the common A415 chamber convention.'),
+    concert('classical_430', 'Mozart · 430', 'Classical chamber · A=430', 430.0,
+      'Common historically informed pitch for Classical-era chamber music — Haydn, Mozart, and early Beethoven style. A working modern target for that repertoire, not a claim that every Classical city sat exactly at 430.'),
+    concert('scientific_430', 'Sci C256', 'Scientific pitch · A≈430.54', 430.54,
+      'Nineteenth-century mathematical pitch where middle C is exactly 256 Hz (a power of two). That locks A4 near 430.54 Hz. Loved by theorists; rarely the stage standard.'),
+    concert('verdi_432', 'Verdi · 432', 'Verdi preference · A=432', 432.0,
+      'Giuseppe Verdi argued for a lower concert pitch to protect singers. His preference sits slightly under the French diapason normal of 435 Hz — the root of many later “432” discussions.'),
+    concert('french_435', 'Debussy · 435', 'French diapason · A=435', 435.0,
+      'France’s 1859 legal standard (diapason normal). The pitch world Debussy and late-Romantic French music lived closest to before the 1939 international shift toward 440.'),
+    concert('iso_440', 'ISO · 440', 'International standard · A=440', 440.0,
+      'ISO 16 concert pitch, settled as the international recommendation in 1939 and still the default for most modern production, schools, and digital tools.'),
+    concert('berlin_443', 'Berlin · 443', 'Modern bright orchestra · A=443', 443.0,
+      'Many late-twentieth and twenty-first century orchestras (including the Berlin Philharmonic tradition) tune a little sharp of 440 for brilliance and projection.'),
+    concert('beethoven_455', 'Beethoven · 455', 'Beethoven fork · A=455.4', 455.4,
+      'A tuning fork linked to Beethoven around 1800 (British Library) measures about 455.4 Hz — notably high versus modern A440. Distinct from the gentler A430 Classical chamber target used in historically informed pitch practice.'),
+  ];
+
+  const SOLFEGGIO_PRESETS = [
+    solf('heart_528', 'Heart C528', 'Heart · C = 528 Hz', 'C5 = 528.00', 443.9933072539613,
+      'Solfeggio MI — the “miracle / repair” tone people reach for for love, coming back to center, and heart-level reset. We lock C5 to 528 Hz (concert A ≈ 444, about +16 ¢). A gentle retune — never A4=528, which would transpose the song by three semitones.'),
+    solf('heart_528_fifth', 'Heart 5th', 'Heart · 528 via fifth stack', 'F3×3 → 528', 443.49,
+      'Same 528 Hz heart intent (love / repair / center), heard as the third harmonic of F3 instead of locking C. Use when you want the 528 color with a fifth-stack flavor. Implied A stays near 444 — still a retune, not a smash.'),
+    solf('throat_741', 'Throat 741', 'Throat · F♯ = 741 Hz', 'F♯5 = 741.00', 440.60,
+      'Solfeggio SOL — throat / expression. Used for speaking clearly, cutting mental static, and letting the voice sit in truth. F♯5 locks to 741 Hz; concert A lands almost on modern 440, so the mix barely moves while the throat tone is exact.'),
+    solf('throat_741_fifth', 'Throat 5th', 'Throat · 741 via fifth stack', 'B3×3 → 741', 440.10,
+      'Throat 741 (expression / truth / clearing the voice) as the third harmonic of B3. Same intent as the F♯ lock, with concert A essentially at modern pitch — the 741 partial without even that tiny shift.'),
+    solf('crown_963_432', 'Crown 963', 'Crown · 963 near A432', 'G3×5 ≈ 963', 432.37,
+      'Solfeggio SI — crown / unity. The sky pole: oneness, “returning to spirit,” Father Sky register. 963 Hz is the fifth harmonic of G3, so concert A stays next to Verdi 432. Crown color without yanking the track.'),
+    solf('root_396', 'Root 396', 'Root · G = 396 Hz', 'G4 = 396.00', 444.49,
+      'Solfeggio UT — root / liberation. Grounding, home, safety, fortress, releasing fear and guilt. G4 locks to 396 Hz (concert A ≈ 444.5). The earth register — canopy as shelter, not as sky.'),
+    solf('sacral_417', 'Sacral 417', 'Sacral · G♯ = 417 Hz', 'G♯4 = 417.00', 441.80,
+      'Solfeggio RE — sacral / change. Used for unsticking a pattern, creativity, and letting a new situation begin. G♯4 locks to 417 Hz (concert A ≈ 441.8) — one of the smallest moves from a commercial master, with a clear sacral tone in the grid.'),
+  ];
+
+  const PRESETS = Object.fromEntries(
+    [...CONCERT_PRESETS, ...SOLFEGGIO_PRESETS].map(p => [p.id, p])
+  );
+
+  let state = {
+    mode: 'concert_a',
+    preset: 'verdi_432',
+    ab: 'A',
+    srcA4: SRC,
+  };
+
+  function centsColor(c) {
+    const a = Math.abs(c);
+    if (a <= 50) return 'var(--c432-ok)';
+    if (a <= 80) return 'var(--c432-warn)';
+    return 'var(--c432-danger)';
+  }
+  function centsToPercent(c) {
+    const p = ((c + 120) / 240) * 100;
+    return Math.max(2, Math.min(98, p));
+  }
+  function activeList() {
+    if (state.mode === 'concert_a') return CONCERT_PRESETS;
+    if (state.mode === 'solfeggio_lock') return SOLFEGGIO_PRESETS;
+    return [];
+  }
+  function resolvePreset() {
+    if (state.mode === 'bypass') {
+      return { label: 'Bypass — original pitch', lock: 'Original', a4: state.srcA4, era: 'no shift', kind: 'bypass' };
+    }
+    const list = activeList();
+    let p = PRESETS[state.preset];
+    if (!p || p.mode !== state.mode) p = list[0];
+    return p || PRESETS.verdi_432;
+  }
+  function renderPresetChips() {
+    const box = document.getElementById('presetChips');
+    const section = document.getElementById('presetSection');
+    const label = document.getElementById('presetSectionLabel');
+    const hint = document.getElementById('presetHint');
+    const list = activeList();
+    if (state.mode === 'bypass') {
+      section.style.opacity = '0.35';
+      section.style.pointerEvents = 'none';
+      label.innerHTML = 'Presets · none in Bypass';
+      hint.textContent = 'Bypass keeps A4_src; no retune.';
+      box.innerHTML = '';
+      return;
+    }
+    section.style.opacity = '1';
+    section.style.pointerEvents = 'auto';
+    if (state.mode === 'concert_a') {
+      label.innerHTML = 'Presets · Concert A';
+      hint.textContent = 'Historical orchestra A4 targets — Bach 415 · Handel 422 · Mozart 430 · Verdi 432 · Debussy 435 · ISO 440 · Berlin 443 · Beethoven 455';
+    } else {
+      label.innerHTML = 'Presets · Solfeggio lock';
+      hint.textContent = 'Locks a Solfeggio Hz onto a scale degree (or harmonic). A4 is solved from that lock — not forced equal to F.';
+    }
+    if (!list.find(p => p.id === state.preset)) state.preset = list[0].id;
+    box.innerHTML = '';
+    list.forEach(p => {
+      const b = document.createElement('button');
+      b.className = 'preset-chip' + (p.id === state.preset ? ' active' : '');
+      b.dataset.preset = p.id;
+      b.textContent = p.chip;
+      b.title = p.desc || p.label;
+      b.onclick = () => setPreset(b);
+      box.appendChild(b);
+    });
+  }
+
+  function updateReadout() {
+    renderPresetChips();
+    const p = resolvePreset();
+    const shift = centsFromSrc(p.a4);
+    const ratio = p.a4 / state.srcA4;
+    const shiftTxt = (shift > 0 ? '+' : '') + shift.toFixed(1) + ' ¢';
+
+    document.getElementById('modeLabel').textContent =
+      state.mode === 'bypass' ? 'Bypass' : (state.mode === 'solfeggio_lock' ? 'Solfeggio lock' : 'Concert A');
+    document.getElementById('lockLabel').textContent = p.lock;
+    document.getElementById('a4Target').textContent = p.a4.toFixed(2);
+    document.getElementById('shiftLabel').textContent = shiftTxt;
+
+    // Clean telemetry card
+    let title = p.label;
+    if (state.ab === 'B') title += '  ·  preview B';
+    document.getElementById('lcd1').textContent = title;
+    document.getElementById('lcdSub').textContent =
+      p.desc || p.lock || (state.mode === 'bypass' ? 'Original pitch · no shift applied' : '');
+    document.getElementById('lcdSrc').textContent = state.srcA4.toFixed(1) + ' Hz';
+    document.getElementById('lcdTgt').textContent = p.a4.toFixed(2) + ' Hz';
+    document.getElementById('lcdLock').textContent = p.lock.replace(' = ', ' ');
+    document.getElementById('lcdRatio').textContent = ratio.toFixed(4);
+
+    const col = state.mode === 'bypass' ? 'var(--c432-bypass)' : centsColor(shift);
+    const centsEl = document.getElementById('centsReadout');
+    centsEl.textContent = shiftTxt;
+    centsEl.style.color = col;
+    centsEl.style.textShadow = state.mode === 'bypass' ? 'none' : `0 0 12px ${col}`;
+
+    const pct = centsToPercent(shift);
+    const mid = 50;
+    const fill = document.getElementById('centsFill');
+    if (pct >= mid) {
+      fill.style.left = mid + '%';
+      fill.style.width = (pct - mid) + '%';
+    } else {
+      fill.style.left = pct + '%';
+      fill.style.width = (mid - pct) + '%';
+    }
+    fill.style.background = `linear-gradient(90deg, ${col}33, ${col}88)`;
+
+    const dot = document.getElementById('centsDot');
+    dot.style.left = pct + '%';
+    dot.style.background = col;
+    dot.style.boxShadow = `0 0 10px ${col}`;
+
+    const statusEl = document.getElementById('statusLabel');
+    const lcdStatus = document.getElementById('lcdStatus');
+    if (state.mode === 'bypass') {
+      statusEl.textContent = 'bypass';
+      statusEl.className = 'tuning-value';
+      statusEl.style.color = 'var(--c432-bypass)';
+      lcdStatus.textContent = 'bypass';
+      lcdStatus.className = 'lcd-status bypass';
+    } else {
+      const status = Math.abs(shift) > 80 ? 'blocked' : (Math.abs(shift) > 50 ? 'warn' : 'ok');
+      statusEl.textContent = status;
+      statusEl.style.color = '';
+      statusEl.className = 'tuning-value ' + (status === 'ok' ? '' : (status === 'warn' ? 'warn' : 'danger'));
+      lcdStatus.textContent = status;
+      lcdStatus.className = 'lcd-status' + (status === 'ok' ? '' : ' ' + status);
+    }
+    document.getElementById('timer').className = 'timer' + (state.ab === 'B' || state.mode === 'bypass' ? ' muted' : '');
+    updateDetectionViz();
+  }
+
+  function setMode(el) {
+    document.querySelectorAll('.mode-chips .chip').forEach(b => b.classList.remove('active'));
+    el.classList.add('active');
+    state.mode = el.dataset.mode;
+    if (state.mode === 'concert_a') state.preset = 'verdi_432';
+    if (state.mode === 'solfeggio_lock') state.preset = 'heart_528';
+    updateReadout();
+  }
+  function setPreset(el) {
+    state.preset = el.dataset.preset;
+    updateReadout();
+  }
+  function setAB(side) {
+    state.ab = side;
+    document.getElementById('btnA').className = side === 'A' ? 'active' : '';
+    document.getElementById('btnB').className = side === 'B' ? 'active' : '';
+    updateReadout();
+  }
+  document.getElementById('playBtn').addEventListener('click', () => {
+    const playing = document.getElementById('playBtn').textContent === '❚❚';
+    document.getElementById('playBtn').textContent = playing ? '▶' : '❚❚';
+  });
+
+  // ---- Pitch detection representation (mock of tools/detect_tuning.py) ----
+  const histCanvas = document.getElementById('histCanvas');
+  const pcCanvas = document.getElementById('pcCanvas');
+  const hctx = histCanvas.getContext('2d');
+  const pctx = pcCanvas.getContext('2d');
+  let detNoise = seedPc(state.srcA4);
+
+  function seedPc(a4) {
+    // Deterministic-ish pitch-class weights for mock polyphony around detected A
+    const base = [0.55,0.12,0.22,0.08,0.48,0.18,0.14,0.42,0.10,0.70,0.16,0.28];
+    const n = (a4 * 10) % 1;
+    return base.map((v,i) => Math.min(1, Math.max(0.05, v + Math.sin(n*6+i)*0.08)));
+  }
+  function fitCanvas(c) {
+    const r = c.getBoundingClientRect();
+    const dpr = devicePixelRatio || 1;
+    c.width = Math.max(1, Math.floor(r.width * dpr));
+    c.height = Math.max(1, Math.floor(r.height * dpr));
+    const ctx = c.getContext('2d');
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    return { w: r.width, h: r.height, ctx };
+  }
+  function tauFromA4(a4) {
+    // bins (semitone fractions): A4 = 440 * 2^(tau/12) ⇒ tau = 12*log2(A4/440)
+    return 12 * Math.log2(a4 / 440);
+  }
+  function buildHist(tauPeak, conf) {
+    // 101 bins from -0.5 .. +0.5
+    const n = 101;
+    const hist = new Array(n).fill(0);
+    for (let i = 0; i < n; i++) {
+      const x = -0.5 + i / (n - 1);
+      // main lobe + side noise
+      const main = Math.exp(-0.5 * Math.pow((x - tauPeak) / 0.035, 2));
+      const side = 0.08 * Math.exp(-0.5 * Math.pow((x - (tauPeak + 0.18)) / 0.05, 2));
+      const noise = 0.03 * (0.5 + 0.5 * Math.sin(i * 0.7 + tauPeak * 9));
+      hist[i] = main * conf + side * (1 - conf) * 0.5 + noise;
+    }
+    const m = Math.max(...hist) || 1;
+    return hist.map(v => v / m);
+  }
+  function drawHist(tauPeak, conf) {
+    const { w, h, ctx } = fitCanvas(histCanvas);
+    ctx.clearRect(0, 0, w, h);
+    const hist = buildHist(tauPeak, conf);
+    const n = hist.length;
+    // grid
+    ctx.strokeStyle = 'rgba(0,243,255,0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(w/2, 0); ctx.lineTo(w/2, h);
+    ctx.stroke();
+    // bars
+    const barW = w / n;
+    for (let i = 0; i < n; i++) {
+      const bh = hist[i] * (h - 6);
+      const x = i * barW;
+      const g = ctx.createLinearGradient(0, h - bh, 0, h);
+      g.addColorStop(0, '#00f3ff');
+      g.addColorStop(1, '#bd00ff');
+      ctx.fillStyle = g;
+      ctx.globalAlpha = 0.35 + hist[i] * 0.65;
+      ctx.fillRect(x + 0.5, h - bh, Math.max(1, barW - 0.5), bh);
+    }
+    ctx.globalAlpha = 1;
+    // peak marker
+    const peakX = ((tauPeak + 0.5) / 1) * w;
+    ctx.strokeStyle = '#00f3ff';
+    ctx.shadowColor = 'rgba(0,243,255,0.7)';
+    ctx.shadowBlur = 8;
+    ctx.beginPath();
+    ctx.moveTo(peakX, 0); ctx.lineTo(peakX, h);
+    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#00f3ff';
+    ctx.font = '10px "Azo Sans", sans-serif';
+    ctx.fillText('τ', Math.min(w - 14, Math.max(2, peakX + 4)), 12);
+  }
+  function drawPc(weights, highlightA) {
+    const { w, h, ctx } = fitCanvas(pcCanvas);
+    ctx.clearRect(0, 0, w, h);
+    const names = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'];
+    const gap = 3;
+    const barW = (w - gap * 11) / 12;
+    weights.forEach((v, i) => {
+      const bh = v * (h - 14);
+      const x = i * (barW + gap);
+      const isA = i === 9;
+      ctx.fillStyle = isA ? '#00f3ff' : 'rgba(189,0,255,0.75)';
+      ctx.shadowColor = isA ? 'rgba(0,243,255,0.55)' : 'rgba(189,0,255,0.35)';
+      ctx.shadowBlur = isA ? 10 : 4;
+      ctx.fillRect(x, h - bh - 12, barW, bh);
+      ctx.shadowBlur = 0;
+      ctx.fillStyle = isA ? '#00f3ff' : 'rgba(138,127,168,0.9)';
+      ctx.font = '9px "Azo Sans", sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(names[i], x + barW/2, h - 2);
+    });
+    ctx.textAlign = 'left';
+  }
+  function updateDetectionViz() {
+    const a4 = state.srcA4;
+    const tau = tauFromA4(a4);
+    const cents = 1200 * Math.log2(a4 / 440);
+    // mock confidence higher when closer to a "clean" detection
+    const conf = Math.max(0.55, Math.min(0.97, 0.92 - Math.abs(tau) * 0.15));
+    const peaks = 980 + Math.floor(Math.abs(tau) * 400) + Math.floor((a4 % 1) * 80);
+    detNoise = seedPc(a4);
+
+    document.getElementById('detA4').textContent = a4.toFixed(2) + ' Hz';
+    document.getElementById('detTau').textContent = (tau >= 0 ? '+' : '') + tau.toFixed(4) + ' bin';
+    document.getElementById('detCents').textContent = (cents >= 0 ? '+' : '') + cents.toFixed(2) + ' ¢';
+    document.getElementById('detCents').style.color = centsColor(cents);
+    document.getElementById('detConf').textContent = conf.toFixed(3);
+    document.getElementById('detPeaks').textContent = String(peaks);
+    document.getElementById('detMethod').textContent = 'stft_residual_histogram';
+
+    drawHist(tau, conf);
+    drawPc(detNoise, true);
+  }
+  window.addEventListener('resize', () => updateDetectionViz());
+
+  updateReadout();
+</script>
+</body>
+</html>

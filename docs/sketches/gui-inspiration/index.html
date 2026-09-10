@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Convert432 — GUI inspiration picks</title>
+<style>
+  @font-face { font-family: 'Azo Sans'; src: url('../neon-glass-v1/fonts/AzoSans-Regular.ttf') format('truetype'); font-weight: 400; }
+  @font-face { font-family: 'Azo Sans'; src: url('../neon-glass-v1/fonts/AzoSans-Medium.ttf') format('truetype'); font-weight: 500; }
+  @font-face { font-family: 'Azo Sans'; src: url('../neon-glass-v1/fonts/AzoSans-Bold.ttf') format('truetype'); font-weight: 700; }
+  :root {
+    --bg: #05000a;
+    --cyan: #00f3ff;
+    --mag: #bd00ff;
+    --dim: #8a7fa8;
+    --ok: #00f3ff;
+    --font: 'Azo Sans', system-ui, sans-serif;
+    --ease: cubic-bezier(0.83, 0, 0.17, 1);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--bg); color: #fff; font-family: var(--font); }
+  body {
+    min-height: 100vh;
+    background:
+      radial-gradient(1200px 600px at 10% -10%, rgba(189,0,255,.22), transparent 55%),
+      radial-gradient(900px 500px at 110% 10%, rgba(0,243,255,.12), transparent 50%),
+      var(--bg);
+  }
+  .wrap { max-width: 920px; padding: 22px 18px 48px; }
+  h1 { font-size: 18px; font-weight: 500; letter-spacing: .04em; margin: 0 0 6px; color: var(--cyan); text-shadow: 0 0 14px rgba(0,243,255,.45); }
+  .lede { font-size: 12px; color: var(--dim); line-height: 1.5; max-width: 52em; margin: 0 0 18px; }
+  .steal {
+    border: 1px solid rgba(0,243,255,.28);
+    background: rgba(20,5,40,.55);
+    backdrop-filter: blur(14px);
+    padding: 12px 14px;
+    margin-bottom: 16px;
+    font-size: 12px; line-height: 1.45; color: #e8e0f4;
+  }
+  .steal b { color: var(--cyan); font-weight: 500; }
+  .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  @media (max-width: 640px) { .grid { grid-template-columns: 1fr; } }
+  .card {
+    border: 1px solid rgba(189,0,255,.32);
+    background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(20,5,40,.5));
+    padding: 12px 12px 10px;
+    min-height: 0;
+  }
+  .card.rec { border-color: rgba(0,243,255,.55); box-shadow: 0 0 18px rgba(0,243,255,.12); }
+  .tag { font-size: 9px; letter-spacing: .14em; text-transform: uppercase; color: var(--dim); margin-bottom: 4px; }
+  .card h2 { font-size: 13px; font-weight: 500; margin: 0 0 6px; }
+  .card p { font-size: 11px; color: var(--dim); line-height: 1.45; margin: 0 0 8px; }
+  .card .take { font-size: 11px; color: #fff; line-height: 1.4; }
+  .card a { color: var(--cyan); text-decoration: none; font-size: 10px; letter-spacing: .04em; }
+  .card a:hover { text-shadow: 0 0 8px var(--cyan); }
+  .live { margin-top: 18px; border: 1px solid rgba(0,243,255,.28); padding: 14px; background: rgba(20,5,40,.45); }
+  .live h3 { margin: 0 0 8px; font-size: 12px; font-weight: 500; color: var(--cyan); letter-spacing: .08em; text-transform: uppercase; }
+  .btns { display: flex; flex-wrap: wrap; gap: 8px; }
+  button.alive {
+    appearance: none; cursor: pointer; border: 1px solid rgba(0,243,255,.45);
+    background: rgba(0,243,255,.08);
+    color: #fff; font-family: inherit; font-size: 12px; font-weight: 500;
+    letter-spacing: .08em; text-transform: uppercase;
+    padding: 10px 16px; position: relative; overflow: hidden;
+    transition: transform .18s var(--ease), box-shadow .18s var(--ease), border-color .18s var(--ease), background .18s var(--ease);
+  }
+  button.alive::after {
+    content: ''; position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 30%, rgba(255,255,255,.35) 50%, transparent 70%);
+    transform: translateX(-120%);
+    transition: transform .55s var(--ease);
+    pointer-events: none;
+  }
+  button.alive:hover {
+    transform: translateY(-1px) scale(1.03);
+    border-color: var(--cyan);
+    box-shadow: 0 0 16px rgba(0,243,255,.35);
+    background: rgba(0,243,255,.16);
+  }
+  button.alive:hover::after { transform: translateX(120%); }
+  button.alive:active { transform: scale(0.96); box-shadow: 0 0 8px rgba(0,243,255,.5) inset; }
+  button.alive.mag { border-color: rgba(189,0,255,.5); background: rgba(189,0,255,.1); }
+  button.alive.mag:hover { border-color: var(--mag); box-shadow: 0 0 16px rgba(189,0,255,.35); background: rgba(189,0,255,.2); }
+  button.alive.on { animation: pulse 1.8s ease-in-out infinite; }
+  @keyframes pulse {
+    0%,100% { box-shadow: 0 0 8px rgba(0,243,255,.25); }
+    50% { box-shadow: 0 0 22px rgba(0,243,255,.55); }
+  }
+  .skip { margin-top: 14px; font-size: 11px; color: var(--dim); line-height: 1.45; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Inspiration — steal list, not a mood board</h1>
+  <p class="lede">Award sites are mostly marketing microsites. We need a <b style="color:#fff;font-weight:500">desktop jukebox</b>: glass as a layer, buttons that feel powered-on, Winamp density. Hover the demo buttons at the bottom — that’s “alive.”</p>
+
+  <div class="steal">
+    <b>What we take:</b> Apple Liquid Glass’s idea that controls are a <b>distinct glass layer sitting above content</b>, with a specular highlight that moves on hover/press. Teenage Engineering’s “the button is a physical object.” Somefolk’s restraint so the transport isn’t theatre.<br>
+    <b>What we don’t:</b> Awwwards 3D camera-scroll album sites (Bastille / SIRUP / Noomo). Pretty. Wrong product.
+  </div>
+
+  <div class="grid">
+    <article class="card rec">
+      <div class="tag">Recommended · material</div>
+      <h2>Apple Liquid Glass (WWDC 2025)</h2>
+      <p>iOS 26 / macOS Tahoe. Translucent material that behaves like real glass — speculars react to motion. Controls float above the app, not painted into it.</p>
+      <div class="take">Steal: chips, transport, LCD as glass pills over the void/artwork. Not a frosted rectangle filling the window.</div>
+      <p style="margin-top:8px"><a href="https://www.apple.com/newsroom/2025/06/apple-introduces-a-delightful-and-elegant-new-software-design/" target="_blank">Apple newsroom ↗</a></p>
+    </article>
+
+    <article class="card rec">
+      <div class="tag">Recommended · alive buttons</div>
+      <h2>Teenage Engineering OP-1</h2>
+      <p>Not an Awwwards site. Hardware: every key has travel, light, and a click. Software that copies TE never uses flat grey rectangles.</p>
+      <div class="take">Steal: press scale 0.96, edge specular sweep, playing state = breathing glow. Dead buttons are a bug.</div>
+    </article>
+
+    <article class="card">
+      <div class="tag">Awwwards element</div>
+      <h2>Somefolk — Minimal audio player</h2>
+      <p>Dominique Sire / Somefolk. Tiny player, no chrome. From Awwwards video+audio collection.</p>
+      <div class="take">Steal: transport is 4 controls, not 14. Our RE-Tune panel is the extra; the player stays dumb and fast.</div>
+      <p style="margin-top:8px"><a href="https://www.awwwards.com/inspiration/audio-player" target="_blank">Awwwards element ↗</a></p>
+    </article>
+
+    <article class="card">
+      <div class="tag">Awwwards · buttons</div>
+      <h2>Propel — button micro-interaction</h2>
+      <p>Hover is the whole event: fill, letter-spacing, or a light pass. Not a color swap.</p>
+      <div class="take">Steal: one shared <code style="color:var(--cyan)">.alive</code> recipe on every chip/action — hover lift, specular, active squash. Same bezier we already use on the cents meter.</div>
+      <p style="margin-top:8px"><a href="https://www.awwwards.com/inspiration/buttons-micro-interaction" target="_blank">Propel ↗</a></p>
+    </article>
+
+    <article class="card">
+      <div class="tag">Already ours</div>
+      <h2>Winamp classic IA</h2>
+      <p>Stacked Player / EQ / Playlist. 90s density. Award-winning in the only sense that matters: people could drive it drunk.</p>
+      <div class="take">Keep the stack. Skin it in neon glass. Do not flatten into a Spotify column.</div>
+    </article>
+
+    <article class="card">
+      <div class="tag">Look, don’t clone</div>
+      <h2>Active Theory · Bastille SOTD</h2>
+      <p>Site of the Day + Developer Award. 3D audiovisual storm. Also: SIRUP playlists, Noomo Beat, Perturbator hover-reveal.</p>
+      <div class="take">Wrong job. Those are one-song websites. We ship a tool you leave running.</div>
+      <p style="margin-top:8px"><a href="https://www.awwwards.com/awwwards/collections/music-interfaces/" target="_blank">Music interfaces collection ↗</a></p>
+    </article>
+  </div>
+
+  <div class="live">
+    <h3>Live button feel — click these</h3>
+    <div class="btns">
+      <button class="alive" type="button">Play</button>
+      <button class="alive mag" type="button">Apply to play</button>
+      <button class="alive on" type="button">Playing</button>
+      <button class="alive" type="button">Heart C528</button>
+    </div>
+  </div>
+
+  <p class="skip">Windows/Tauri constraint (from our own skill): full-window <code>backdrop-filter</code> + mask hangs WebView2 on resize. Glass lives on <b style="color:#fff;font-weight:500">cards and buttons</b>, not a blur over the entire HWND. Specular on the control, void behind it.</p>
+</div>
+</body>
+</html>

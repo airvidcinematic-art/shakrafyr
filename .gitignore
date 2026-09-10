@@ -1,0 +1,14 @@
+node_modules/
+dist/
+src-tauri/target/
+ConvertedLibrary/
+.play-cache/
+play-cache/
+.worktrees/
+fixtures/_audit/
+*.pyc
+__pycache__/
+.pytest_cache/
+.venv/
+.DS_Store
+*.pdb
