@@ -33,6 +33,13 @@ if str(_ROOT) not in sys.path:
 import numpy as np
 from scipy.signal import stft
 
+from tools.resolve_target import (  # noqa: E402
+    SubAudioTargetError,
+    a4_for_lock,
+    cents,
+    resolve_target,
+)
+
 
 def load_wav_mono(path: str | Path) -> tuple[np.ndarray, int]:
     path = Path(path)
@@ -258,33 +265,12 @@ def ratio_to_target(a4_src: float, a4_tgt: float) -> float:
     return a4_tgt / a4_src
 
 
-def cents(a: float, b: float) -> float:
-    return 1200.0 * math.log2(a / b)
-
-
-def a4_for_lock(f_hz: float, midi_n: int) -> float:
-    return f_hz * (2.0 ** ((69 - midi_n) / 12.0))
-
-
 def resolve_concert(a4_src: float, a4_tgt: float) -> dict:
-    return {
-        "mode": "concert_a",
-        "a4_target": a4_tgt,
-        "ratio": ratio_to_target(a4_src, a4_tgt),
-        "shift_cents": cents(a4_tgt, a4_src),
-        "lock": f"A4={a4_tgt:.3f}",
-    }
+    return resolve_target(a4_src=a4_src, mode="concert_a", a4_tgt=a4_tgt)
 
 
 def resolve_heart_c528(a4_src: float) -> dict:
-    a4 = a4_for_lock(528.0, 72)  # C5
-    return {
-        "mode": "solfeggio_lock",
-        "a4_target": a4,
-        "ratio": ratio_to_target(a4_src, a4),
-        "shift_cents": cents(a4, a4_src),
-        "lock": "C5=528.000",
-    }
+    return resolve_target(a4_src=a4_src, mode="solfeggio_lock", preset_id="heart_528")
 
 
 def run_pipeline(path: str | Path, target: str = "concert_432") -> dict:
@@ -297,14 +283,7 @@ def run_pipeline(path: str | Path, target: str = "concert_432") -> dict:
         y, sr = decode_mono(path)
     det = estimate_tuning(y, sr)
     a4_src = det["a4_hz"]
-    if target == "concert_432":
-        res = resolve_concert(a4_src, 432.0)
-    elif target == "heart_528":
-        res = resolve_heart_c528(a4_src)
-    elif target == "bypass":
-        res = resolve_concert(a4_src, a4_src)
-    else:
-        raise ValueError(target)
+    res = resolve_target(a4_src=a4_src, preset_id=target)
     return {
         "path": str(path),
         "sr": sr,
@@ -318,7 +297,11 @@ def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Convert432 tuning detector")
     p.add_argument("input", nargs="?", help="audio file (wav, mp3, …)")
     p.add_argument("--gen-fixtures", action="store_true", help="write test fixtures then exit")
-    p.add_argument("--target", default="concert_432", choices=["concert_432", "heart_528", "bypass"])
+    p.add_argument(
+        "--target",
+        default="concert_432",
+        help="palette id (concert_432, heart_528, world_444, bypass, …). Sub-audio ids raise.",
+    )
     p.add_argument("--json", action="store_true")
     p.add_argument("--out", help="write pitch-shifted copy (never overwrites the original)")
     args = p.parse_args(argv)
@@ -345,7 +328,10 @@ def main(argv: list[str] | None = None) -> int:
     if not args.input:
         p.error("input path required (or --gen-fixtures)")
 
-    out = run_pipeline(args.input, target=args.target)
+    try:
+        out = run_pipeline(args.input, target=args.target)
+    except SubAudioTargetError as exc:
+        raise SystemExit(str(exc)) from exc
     if args.json:
         import json
         print(json.dumps(out, indent=2))
