@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>SHAKRA-FYER — White Marble Renaissance</title>
+<title>ShakraFyr — White Marble Renaissance</title>
 <style>
   @font-face {
     font-family: 'Azo Sans';
@@ -634,13 +634,13 @@
     <div class="panel-header">
       <div class="brand">
         <div class="brand-icon">♫</div>
-        <span>SHAKRA-FYER</span>
+        <span id="brandLabel">ShakraFyr</span>
       </div>
       <div class="meta" id="playerMeta">ADD a track to detect A4</div>
     </div>
     <div class="pad">
       <div class="timer" id="timer">0:00</div>
-      <div class="title" id="trackTitle">SHAKRA-FYER</div>
+      <div class="title" id="trackTitle">ShakraFyr</div>
       <div class="subtitle" id="trackSub">Originals never overwritten · rubberband pitch, tempo held</div>
 
       <div class="tuning-strip">
@@ -834,6 +834,25 @@
 <script>
   // ---- Mode owns presets. Concert A = historical A4; Solfeggio = note locks. ----
   const SRC = 440.0;
+  // ---- Brand alternate characters (ShakraFyr variants) ----
+  // Palette loaded at startup from tools/palette.py BRAND_ALTS.
+  const BRAND_VARIANTS = {
+    plain: "ShakraFyr",
+    tengwar: "ŜħąķŗąFŷŗ",
+    runic: "ᚷᚻᛖᚲᚱᛅᚠᛃᚱ",
+    fraktur: "𝔖𝔥𝔞𝔠𝔞𝔉𝔲𝔯",
+    blackletter: "ꜱꜥǟҡɾǟꝼƴɾ",
+    smallcaps: "ꜱʜᴀᴋʀᴀꜰʏʀ",
+    bold: "𝕊𝕙𝕒𝕜𝕣𝕒𝔽𝕦𝕣",
+  };
+  const BRAND_ORDER = ["plain", "tengwar", "runic", "fraktur", "blackletter", "smallcaps", "bold"];
+  let brandIdx = 0;
+  function cycleBrand() {
+    brandIdx = (brandIdx + 1) % BRAND_ORDER.length;
+    const alt = BRAND_VARIANTS[BRAND_ORDER[brandIdx]];
+    document.getElementById("brandLabel").textContent = alt;
+    document.getElementById("trackTitle").textContent = alt;
+  }
   function centsFromSrc(a4) { return 1200 * Math.log2(a4 / state.srcA4); }
   function concert(id, chip, label, a4, desc) {
     return { id, mode: 'concert_a', chip, label, lock: `A4 = ${a4.toFixed(2)}`, a4, desc, kind: 'concert' };
@@ -1438,7 +1457,7 @@
       playlist.splice(idx, 1);
       if (!playlist.length) {
         idx = -1;
-        document.getElementById('trackTitle').textContent = 'SHAKRA-FYER';
+        document.getElementById('trackTitle').textContent = BRAND_VARIANTS.plain;
         document.getElementById('trackSub').textContent = 'Originals never overwritten · rubberband pitch, tempo held';
         document.getElementById('playBtn').textContent = '▶';
         renderPlaylist();

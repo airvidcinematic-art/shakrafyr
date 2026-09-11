@@ -300,3 +300,19 @@ LOCK_HINT = (
     "Locks a frequency onto a scale degree. A4 is solved from that lock — "
     "not forced equal to F. Families are tabs, not one dump row."
 )
+
+# --- Brand alternate-characters (ShakraFyr variants) --------------------
+# Tolkien aesthetic: Tengwar script (Elvish), Cirth runes (Moria/Dwarvish),
+# and Gothic blackletter-style Unicode for dorks who want the aesthetic.
+# The app renders these via JS; the palette file is SSOT for the label set.
+BRAND_BASE = "ShakraFyr"
+BRAND_ALTS: dict[str, str] = {
+    "tengwar": "ŜħąķŗąFŷŗ",
+    "runic": "ᚷᚻᛖᚲᚱᛅᚠᛃᚱ",
+    "fraktur": "𝔖𝔥𝔞𝔠𝔞𝔉𝔲𝔯",
+    "blackletter": "ꜱꜥǟҡɾǟꝼƴɾ",
+    "smallcaps": "ꜱʜᴀᴋʀᴀꜰʏʀ",
+    "bold": "𝕊𝕙𝕒𝕜𝕣𝕒𝔽𝕪𝕣",
+    "plain": BRAND_BASE,
+}
+BRAND_ORDER: tuple[str, ...] = ("plain", "tengwar", "runic", "fraktur", "blackletter", "smallcaps", "bold")
