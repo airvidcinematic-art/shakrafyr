@@ -434,3 +434,31 @@ resolve_lock(F, a4_src, preferred_pc=None, allowed_k=(1,2,3,4,5,6),
 - Return best  
 
 v1 ships **k=1 only** (simpler UX). Preset table above hard-codes the best k=3/k=5 rows as named presets so harmonic options appear without exposing “partial k” to casual users.
+
+---
+
+## Worlds, extended palette, sub-audio (2026-09-11)
+
+Code SSOT: `tools/palette.py` + `tools/resolve_target.py`. ADR: `docs/adr/002-worlds-and-modulation.md`.
+
+**A=444 is the solfeggio world, not a new DSP.** `heart_528` already produces A4≈443.993. Census: 11/34 market tones sit on 12-TET degrees at A=444 vs 2/34 at A=432. Angel/numeric 111/222/444/888 are the same grid (111×4=444 exactly). Concert-A product default stays Verdi 432 — a real, thinner world that owns OM 136.10 Hz and 1152 Hz.
+
+**`resolve_target()` audio floor = 60 Hz.** Below that, raise. Do not lock 7.83 → A4≈52.67. Role on each palette row: `degree-lock | modulation-rate | physical-vibration`. 40 Hz is all three; the façade still raises.
+
+**Modulation plan** (`resolve_modulation`): binaural pair (headphone-only) and isochronic gate of a *standalone tone* are the public-domain side. Music-AM (tremolo on the mixed track) is recorded as physics (sidebands f±R) with `ship=false` pending FTO (Brain.fm US7674224B2 + 2025 continuations). Play/Convert refuse a fake A4.
+
+**Corrections baked in:** 194.18 Hz = solar day (86,400 s); sidereal = 194.71 Hz. Do not label 111 Hz “Hypogeum resonance” (Hal Saflieni 70/114 Hz; 110–112 Hz is Jahn 1995 survey). Only Schumann f1≈7.83 Hz is a stable figure. No Rife disease lists. Do not cite “Verdiyev 2019”.
+
+**Handoff lock vectors** (A4_src=440, k=1):
+
+| F (Hz) | lock | A4 | notes |
+|--------|------|----|-------|
+| 111 | A2 | 444.000 | exact |
+| 888 | A5 | 444.000 | exact |
+| 136.10 | C#3 | 432.09 | OM / Earth-year |
+| 172.06 | F3 | 433.56 | platonic year |
+| 194.18 | G3 | 435.92 | solar day |
+| 2172 | C7 | 456.61 | edge (~+64¢), not rejected |
+| 40 | — | raise | modulation |
+| 7.83 | — | raise | modulation |
+

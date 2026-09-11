@@ -10,7 +10,7 @@ Winamp-style jukebox + library converter. Detects concert pitch of a file, then 
 - **Play / Apply to Play** → ffmpeg `rubberband` sidecar (`pitch=ratio`, `tempo=1`, `formant=shifted`), then HTML audio. First shift waits; repeats are cached under `%TEMP%\convert432-play\`.
 - **Preview A** = retune. **Preview B** / **Bypass** = original.
 - **Queue Convert** writes `ConvertedLibrary\{stem} [{preset}_{pc}{hz}].wav`. Originals are never overwritten. Duration stays put.
-- Modes: Concert A (historical A4 chips) · Solfeggio lock · Bypass. Presets are children of the active mode.
+- Modes: Concert A (historical A4 chips + solfeggio world A≈444) · Solfeggio lock (family tabs) · Modulation (rate — Play/Convert refuse a fake A4) · Bypass. Presets are children of the active mode. Concert default stays Verdi 432.
 
 It will **not** set A4 = 528. That would be a ~3-semitone transpose. Heart lock is C5 = 528.
 
@@ -20,6 +20,7 @@ It will **not** set A4 = 528. That would be a ~3-semitone transpose. Heart lock 
 |-----|---------|
 | [`docs/theory/solfeggio-concert-pitch-math.md`](docs/theory/solfeggio-concert-pitch-math.md) | Math SSOT — Optimal Note Lock, why not A=528, dual-constraint (~47.4¢) |
 | [`docs/adr/001-tuning-modes.md`](docs/adr/001-tuning-modes.md) | Concert-A vs Solfeggio-lock product rules |
+| [`docs/adr/002-worlds-and-modulation.md`](docs/adr/002-worlds-and-modulation.md) | Worlds 444/432, palette families, sub-audio refuse, music-AM FTO gate |
 | [`docs/design/theme-neon-glass-jukebox.md`](docs/design/theme-neon-glass-jukebox.md) | Neon-glass visual SSOT (Azo Sans) |
 | [`docs/git-workflow.md`](docs/git-workflow.md) | Local `main` / `dev` / worktrees |
 | [`.hermes/plans/2026-09-08_195950-convert432.md`](.hermes/plans/2026-09-08_195950-convert432.md) | Implementation plan (status tail is SSOT) |
@@ -30,7 +31,7 @@ Needs: Node, Rust, Python with numpy/scipy, `ffmpeg` on PATH (rubberband filter)
 
 ```bash
 cd C:/Users/shaon/Projects/Convert432
-python -m pytest tests/ -q          # 22 passed (2026-09-10)
+python -m pytest tests/ -q          # 45 passed (2026-09-11)
 npm run tauri dev                   # window + http://localhost:1432
 ```
 
