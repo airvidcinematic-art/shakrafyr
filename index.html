@@ -422,11 +422,12 @@
     font-size: 12px;
   }
   .brand-mark {
-    font-size: 20px;
-    line-height: 1;
+    width: 22px; height: 22px;
+    display: grid; place-items: center;
     color: var(--c432-cyan);
-    font-family: 'Segoe UI Symbol', 'Segoe UI Historic', 'Noto Sans Symbols 2', serif;
+    flex-shrink: 0;
   }
+  .brand-mark svg { width: 22px; height: 22px; display: block; }
   .brand-icon {
     width: 26px; height: 26px;
     border: 1.5px solid var(--c432-cyan);
@@ -826,7 +827,7 @@
   }
   .lcd-metric .v.accent { color: var(--c432-text); }
   .cents-meter {
-    margin-top: 10px;
+    margin: 0 0 12px;
     display: grid;
     grid-template-columns: 1fr auto;
     gap: 10px 12px;
@@ -1090,7 +1091,15 @@
   <section class="panel">
     <div class="panel-header">
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true">🜂</span>
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+            <polygon points="16,5 27,25 5,25" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linejoin="round"/>
+            <circle cx="16" cy="5" r="2.15" fill="currentColor"/>
+            <circle cx="27" cy="25" r="2.15" fill="currentColor"/>
+            <circle cx="5" cy="25" r="2.15" fill="currentColor"/>
+            <circle cx="16" cy="17.4" r="1.25" fill="currentColor"/>
+          </svg>
+        </span>
         <span id="brandLabel">ShakraFyr</span>
         <select id="themeSelect" class="theme-select" title="Theme">
           <option value="marble">Marble</option>
@@ -1112,7 +1121,7 @@
         <div class="tuning-row">
           <div class="tuning-cell">
             <div class="tuning-label">Mode</div>
-            <div class="tuning-value" id="modeLabel">Concert A</div>
+            <div class="tuning-value" id="modeLabel">Concert pitch</div>
           </div>
           <div class="tuning-cell">
             <div class="tuning-label">Lock</div>
@@ -1182,18 +1191,28 @@
       <div class="meta">Concert pitch · lock · rate</div>
     </div>
     <div class="pad">
+      <div class="cents-meter">
+        <div class="cents-scale"><span>−50¢</span><span>0</span><span>+50¢</span></div>
+        <div class="cents-track">
+          <div class="cents-fill" id="centsFill" style="left:36.6%;width:13.4%"></div>
+          <div class="cents-center"></div>
+          <div class="cents-dot" id="centsDot" style="left:36.6%"></div>
+        </div>
+        <div class="cents-readout" id="centsReadout">−32.2 ¢</div>
+      </div>
+
       <div class="re-section">
         <div class="small-label">Mode <span style="color:var(--c432-text-dim);letter-spacing:0.08em;font-size:9px">(top level)</span></div>
         <div class="mode-chips">
-          <button class="chip active" data-mode="concert_a" onclick="setMode(this)">Concert A</button>
-          <button class="chip" data-mode="solfeggio_lock" onclick="setMode(this)">Solfeggio lock</button>
+          <button class="chip active" data-mode="concert_a" onclick="setMode(this)">Concert pitch</button>
+          <button class="chip" data-mode="solfeggio_lock" onclick="setMode(this)">Tone lock</button>
           <button class="chip" data-mode="modulation_rate" onclick="setMode(this)">Modulation</button>
           <button class="chip" data-mode="bypass" onclick="setMode(this)">Bypass</button>
         </div>
       </div>
 
       <div class="re-section" id="presetSection" style="margin-top:12px">
-        <div class="small-label" id="presetSectionLabel">Presets · Concert A</div>
+        <div class="small-label" id="presetSectionLabel">Presets · Concert pitch</div>
         <div class="family-chips" id="familyChips"></div>
         <div class="preset-chips" id="presetChips"></div>
         <div class="preset-hint" id="presetHint"></div>
@@ -1225,15 +1244,6 @@
             <div class="k" id="lcdRatioK">Ratio</div>
             <div class="v" id="lcdRatio">0.9818</div>
           </div>
-        </div>
-        <div class="cents-meter">
-          <div class="cents-scale"><span>−50¢</span><span>0</span><span>+50¢</span></div>
-          <div class="cents-track">
-            <div class="cents-fill" id="centsFill" style="left:36.6%;width:13.4%"></div>
-            <div class="cents-center"></div>
-            <div class="cents-dot" id="centsDot" style="left:36.6%"></div>
-          </div>
-          <div class="cents-readout" id="centsReadout">−32.2 ¢</div>
         </div>
       </div>
 
@@ -1309,7 +1319,7 @@
 <audio id="elAudio" preload="auto"></audio>
 
 <script>
-  // ---- Mode owns presets. Concert A = historical A4; Solfeggio = note locks. ----
+  // ---- Mode owns presets. Concert pitch = historical A4; Tone lock = named Hz on a degree. ----
   const SRC = 440.0;
   // ---- Brand alternate characters (ShakraFyr variants) ----
   // Palette loaded at startup from tools/palette.py BRAND_ALTS.
@@ -1352,101 +1362,111 @@
   // label = short title in telemetry. desc = educational blurb under it (no acronym dumps in the title).
   const CONCERT_PRESETS = [
     concert('baroque_415', 'Bach · 415', 'Baroque chamber · A=415', 415.0,
-      'Modern historically informed pitch for Bach-era chamber music (Kammerton). About one semitone below today’s A440 — warmer and darker than modern orchestra pitch. Not a single historical law; a practical period-performance target.'),
+      'In the Bach era the room sat darker. Chamber players today often park A at 415 — about a semitone under modern concert pitch — so gut strings and wooden flutes speak without strain. Not a law of 1730. A working historically informed pitch for that repertoire.'),
     concert('handel_422', 'Handel · 422.5', 'Handel fork · A=422.5', 422.5,
-      'Taken from a 1740 tuning fork associated with Handel. A concrete historical reference point in the Baroque band, slightly above the common A415 chamber convention.'),
+      'A surviving fork from around 1740, linked to Handel, rings at 422.5 Hz. A rare hard number from an age when every city kept its own A. A little brighter than the A415 chamber convention, still well below today.'),
     concert('classical_430', 'Mozart · 430', 'Classical chamber · A=430', 430.0,
-      'Common historically informed pitch for Classical-era chamber music — Haydn, Mozart, and early Beethoven style. A working modern target for that repertoire, not a claim that every Classical city sat exactly at 430.'),
+      'Haydn, Mozart, and early Beethoven style often get A=430 in modern historically informed rooms. Think candlelit quartets, not the high fork later tied to Beethoven himself. A working target for that repertoire — not a claim every Classical city agreed.'),
     concert('scientific_430', 'Sci C256', 'Scientific pitch · A≈430.54', 430.54,
-      'Nineteenth-century mathematical pitch where middle C is exactly 256 Hz (a power of two). That locks A4 near 430.54 Hz. Loved by theorists; rarely the stage standard.'),
+      'Nineteenth-century theorists loved a middle C of exactly 256 Hz — a clean power of two, easy to double forever. That puts A near 430.54. Elegant on paper. Rarely what the orchestra actually played.'),
     concert('verdi_432', 'Verdi · 432', 'Verdi preference · A=432', 432.0,
-      'Giuseppe Verdi argued for a lower concert pitch. His preference sits slightly under the French diapason normal of 435 Hz — the root of many a “432” discussion since. Legends say it clears the skin.'),
+      'Verdi fought the climbing pitch of his century. He wanted singers to last the night, and his preference sits just under the French legal A of 435. That argument is the taproot of every later 432 conversation. Default here because it is a real historical stance, not a mystic invention.'),
     concert('world_444', 'World 444', 'Solfeggio world · A≈444', 443.9933072539613,
-      'Native grid for solfeggio and numeric tones. Heart C5=528 already produces this A. Eleven market tones sit on 12-TET degrees here versus two at A=432. A=432 is a different world (Cosmic / Verdi), not a worse one.'),
+      'The neighborhood most solfeggio and repeating-digit tones already live in. Pin C to 528 and A falls out near 444. Eleven catalogued market tones land on notes here; only a couple do at 432. A different world, not a worse one.'),
     concert('french_435', 'Debussy · 435', 'French diapason · A=435', 435.0,
-      'France’s 1859 legal standard (diapason normal). The pitch world Debussy and late-Romantic French music lived closest to before the 1939 international shift toward 440.'),
+      'In 1859 France made A=435 the law — diapason normal. Debussy and late-Romantic French rooms sat closest to this number until the 1939 international shift toward 440. A government pitch. Rare honesty in this catalogue.'),
     concert('iso_440', 'ISO · 440', 'International standard · A=440', 440.0,
-      'ISO 16 concert pitch, settled as the international recommendation in 1939 and still the default for most modern production, schools, and digital tools. A clean number. Nothing more.'),
+      'The 1939 international recommendation, later ISO 16. The A your DAW, school band, and phone tuner assume. A round number chosen so the world could agree. Nothing sacred. Nothing broken. The grid most records were made on.'),
     concert('berlin_443', 'Berlin · 443', 'Modern bright orchestra · A=443', 443.0,
-      'Many late-twentieth and twenty-first century orchestras tune a little sharp of 440 for brilliance and projection.'),
+      'Many modern orchestras sneak sharp of 440 for extra sheen and projection — Berlin and Vienna often live around 443. The hall sounds brighter. The singers work a little harder.'),
     concert('beethoven_455', 'Beethoven · 455', 'Beethoven fork · A=455.4', 455.4,
-      'A tuning fork linked to Beethoven around 1800 (British Library) measures about 455.4 Hz — notably high versus modern A440. Distinct from the gentler A430 Classical chamber target.'),
+      'A fork in the British Library, tied to Beethoven around 1800, rings near 455.4 Hz — startlingly high versus today. Keep this distinct from the gentler A430 Classical chamber target. Same composer, two different stories.'),
   ];
 
   const SOLFEGGIO_PRESETS = [
-    solf('heart_528', 'Heart C528', 'Heart · C = 528 Hz', 'C5 = 528.00', 443.9933072539613,
-      'Solfeggio MI — legends say it clears the skin. People reach for this tone for love, coming back to center, and heart-level reset. We lock C5 to 528 Hz (concert A ≈ 444, about +16 ¢). A gentle retune — never A4=528, which would transpose the song by three semitones.'),
-    solf('heart_528_fifth', 'Heart 5th', 'Heart · 528 via fifth stack', 'F3×3 → 528', 443.49,
-      'Same 528 Hz heart intent (love / repair / center), heard as the third harmonic of F3 instead of locking C. Use when you want the 528 color with a fifth-stack flavor. Implied A stays near 444 — still a retune, not a smash.'),
-    solf('throat_741', 'Throat 741', 'Throat · F♯ = 741 Hz', 'F♯5 = 741.00', 440.60,
-      'Solfeggio SOL — expression. For speaking clearly and letting the voice sit in its own way. F♯5 locks to 741 Hz; concert A lands almost on modern 440, so the mix barely moves while the throat tone is exact.'),
-    solf('throat_741_fifth', 'Throat 5th', 'Throat · 741 via fifth stack', 'B3×3 → 741', 440.10,
-      'Throat 741 (expression / truth / clearing the voice) as the third harmonic of B3. Same intent as the F♯ lock, with concert A essentially at modern pitch — the 741 partial without even that tiny shift.'),
-    solf('crown_963_432', 'Crown 963', 'Crown · 963 near A432', 'G3×5 ≈ 963', 432.37,
-      'Solfeggio SI — crown / unity. The sky pole: oneness, “a feeling of vastness,” Father Sky register. 963 Hz is the fifth harmonic of G3, so concert A stays next to Verdi 432. Crown color without yanking the track.'),
+    lockRow('foundation_174', 'Found 174', 'Foundation · F = 174 Hz', 174.0, 53,
+      'The earth register under the earth register. 174 is the foundation tone in the extended solfeggio set — canopy as shelter, the low hum of being held. We pin F to 174. A small slide from modern A, almost a whisper of a retune.', 'solfeggio'),
+    lockRow('repair_285', 'Repair 285', 'Repair · C♯ = 285 Hz', 285.0, 61,
+      'People reach for 285 when they want the story of mending — reconstruction, a second chance. It sits in a quarter-tone pocket, so the grid moves more than most. We pin C-sharp to 285 and tell you honestly it is near the edge of a comfortable retune.', 'solfeggio'),
     solf('root_396', 'Root 396', 'Root · G = 396 Hz', 'G4 = 396.00', 444.49,
-      'Solfeggio UT — root / liberation. Traditional paradigm says good for bladder. G4 locks to 396 Hz (concert A ≈ 444.5). The earth register — canopy as shelter, not as sky.'),
+      'Muladhara — root. Earth, clan, trees, the feeling of having a floor. Solfeggio called this syllable UT, the sound of home. People reach for 396 when the lyric is land, shelter, or going without roots. We pin G to 396. Canopy as shelter, not as sky.'),
     solf('sacral_417', 'Sacral 417', 'Sacral · G♯ = 417 Hz', 'G♯4 = 417.00', 441.80,
-      'Solfeggio RE — sacral / change. Used for unsticking a pattern, creativity, and letting a new situation begin. G♯4 locks to 417 Hz (concert A ≈ 441.8) — one of the smallest moves from a commercial master, with a clear sacral tone in the grid.'),
+      'Svadhisthana — sacral. Associated with change, making, unsticking a pattern, letting a new situation begin. Solfeggio called it RE. We pin G-sharp to 417, one of the smallest moves from a commercial master, with that sacral tone sitting exact on the grid.'),
+    solf('heart_528', 'Heart C528', 'Heart · C = 528 Hz', 'C5 = 528.00', 443.9933072539613,
+      'People reach for 528 when they want the mix to feel like coming home to the chest — love, repair, a soft reset. Medieval solfeggio called this syllable MI. Later lore nicknamed it the miracle tone. We pin C to 528 so the song keeps its key; the whole grid only slides a little. The seven-chakra heart is 639 — different map, different job.'),
+    solf('heart_528_fifth', 'Heart 5th', 'Heart · 528 via fifth stack', 'F3×3 → 528', 443.49,
+      'Same 528 color — love, repair, center — heard as a stacked fifth instead of a C. F times three sings 528, so the 528 lives in the overtone, not the fundamental. For when you want the MI glow with a slightly different grain. Still a gentle slide, not a key change.'),
+    lockRow('heart_639', 'Heart 639', 'Anahata · D♯ = 639 Hz', 639.0, 75,
+      'Anahata: the unstruck. In the seven-chakra map this is the heart — connection, the space between two people, speaking from the chest. 528 is MI / solar in that map; 639 is the actual heart tone. We pin D-sharp to 639. The grid moves more than 528 does, still inside a retune, not a smash.', 'solfeggio'),
+    solf('throat_741', 'Throat 741', 'Throat · F♯ = 741 Hz', 'F♯5 = 741.00', 440.60,
+      'Vishuddha — the throat. Associated with saying the thing, singing in your own voice, clearing the air. Solfeggio called it SOL. We pin F-sharp to 741, and concert A barely leaves modern 440, so the mix hardly moves while that throat tone sits exact.'),
+    solf('throat_741_fifth', 'Throat 5th', 'Throat · 741 via fifth stack', 'B3×3 → 741', 440.10,
+      'Same throat intent — truth, voice, the unstuck word — as a fifth-stack: B times three is 741. Concert A sits essentially at modern pitch. Use when you want 741 in the overtone without even that tiny shift.'),
+    lockRow('third_eye_852', 'Ajna 852', 'Third eye · G♯ = 852 Hz', 852.0, 80,
+      'Ajna — the third eye. Associated with inner sight, noticing the pattern, seeing through a story. Solfeggio called it LA. We pin G-sharp to 852. The grid moves about as much as heart 639; still a retune, still the same song.', 'solfeggio'),
+    lockRow('crown_963', 'Crown 963', 'Crown · B = 963 Hz', 963.0, 83,
+      'Sahasrara, the crown: oneness, Father Sky, a feeling of vastness. Solfeggio SI. This version pins B to 963, so concert A drops toward 429 — the other side of Verdi. Unity as a degree, not an overtone.', 'solfeggio'),
+    solf('crown_963_432', 'Crown 5th', 'Crown · 963 near A432', 'G3×5 ≈ 963', 432.37,
+      'The same crown / SI color, heard as the fifth harmonic of G, so concert A stays next to Verdi 432. Father Sky without yanking the track off the cosmic world. Use when you want 963 in the air and 432 on the floor.'),
   ];
 
   const LOCK_EXTRAS = [
     lockRow('om_136', 'OM 136', 'OM / Earth-year · 136.10 Hz', 136.10, 49,
-      'Cousto Earth-year tone. Exact on the A=432 grid (C#3). The old paradigm says good for bladder; physics says it is a period.', 'cosmic'),
+      'Hans Cousto took the length of the Earth year and octave-transposed it until you could hear it. 136.10 Hz is that tone, and it lands exactly on the A=432 grid. Yogic tradition calls a related drone OM. Physics says: a year, folded into sound.', 'cosmic'),
     lockRow('sun_126', 'Sun 126', 'Sun · 126.22 Hz', 126.22, 47,
-      'Cousto solar tone. Puts this period on a 12-TET degree.', 'cosmic'),
+      'The solar clock of the Sun itself, folded by Cousto into the audible band. A slow celestial day made into a note. We park it on a scale degree so the song can wear it.', 'cosmic'),
     lockRow('throat_141', 'Mercury 141', 'Mercury · 141.27 Hz', 141.27, 49,
-      'Cousto Mercury tone. Degree lock — a tradition that maps it to the throat, but we keep it to a degree.', 'cosmic'),
+      'Cousto Mercury — the fast messenger. Some maps put this at the throat. We treat it as a degree, not a diagnosis. A planet period, heard.', 'cosmic'),
     lockRow('mars_144', 'Mars 144', 'Mars · 144.72 Hz', 144.72, 50,
-      'Cousto Mars tone.', 'cosmic'),
+      'Cousto Mars. Iron, pace, the drum of a shorter year. Folded up until it sits in the bass staff.', 'cosmic'),
     lockRow('saturn_147', 'Saturn 147', 'Saturn · 147.85 Hz', 147.85, 50,
-      'Cousto Saturn. Lands on the A≈444 grid.', 'cosmic'),
+      'Cousto Saturn — the long orbit, the old god of time. Lands on the A≈444 grid, same neighborhood as the solfeggio world.', 'cosmic'),
     lockRow('crown_172', 'Platonic 172', 'Platonic year · 172.06 Hz', 172.06, 53,
-      'Cousto platonic-year tone. Sits between the 432 and 444 worlds — Pythagoras would have noticed.', 'cosmic'),
+      'The platonic year is the slow wobble of the Earth axis — about 25,800 years. Cousto folded that unimaginable clock into 172 Hz. It sits between the 432 and 444 worlds. Pythagoras would have leaned in.', 'cosmic'),
     lockRow('jupiter_183', 'Jupiter 183', 'Jupiter · 183.58 Hz', 183.58, 54,
-      'Cousto Jupiter tone.', 'cosmic'),
+      'Cousto Jupiter — the broad orbit, the generous year. A gas-giant clock in the alto range.', 'cosmic'),
     lockRow('root_194', 'Solar 194', 'Solar day · 194.18 Hz', 194.18, 55,
-      'Cousto solar-day tone (86,400 s). Not the sidereal day — that is 194.71 Hz.', 'cosmic'),
+      'One solar day: 86,400 seconds, folded into sound. The everyday Earth spin, not the star-relative day. Close cousin of 194.71, different clock.', 'cosmic'),
     lockRow('sidereal_194', 'Sidereal 194', 'Sidereal day · 194.71 Hz', 194.71, 55,
-      'Cousto sidereal-day tone. Distinct from solar day 194.18 Hz.', 'cosmic'),
+      'The sidereal day is Earth turning against the stars, about four minutes shorter than the solar day. Cousto makes that 194.71 Hz. Same family as solar 194, not the same tone.', 'cosmic'),
     lockRow('sacral_210', 'Moon 210', 'Moon · 210.42 Hz', 210.42, 56,
-      'Cousto synodic-month tone.', 'cosmic'),
+      'The synodic month — new moon to new moon — folded into 210.42 Hz. Cousto Moon. Associated in some maps with the sacral. We pin a degree and leave the sky-story to the listener.', 'cosmic'),
     lockRow('third_eye_221', 'Venus 221', 'Venus · 221.23 Hz', 221.23, 57,
-      'Cousto Venus tone. The old paradigm says it opens the third eye; we say it is a degree.', 'cosmic'),
+      'Cousto Venus. Tradition sometimes parks this at the third eye. We park it on a note. The morning star, as a frequency.', 'cosmic'),
     lockRow('num_111', '111 Hz', '111 Hz', 111.0, 45,
-      'A2=111 Hz. Same grid as A=444 (111×4=444). Number label only.', 'numeric'),
+      'One-one-one. In the marketplace this is an angel number. In the math it is A at 111 Hz — a quarter of 444. The solfeggio world, spoken as a number.', 'numeric'),
     lockRow('num_222', '222 Hz', '222 Hz', 222.0, 57,
-      'A3=222 Hz. Octave of 111; same A=444 grid. Number label only.', 'numeric'),
+      'Two-two-two. An octave above 111, still the A=444 grid. Repeating digits, same world. A number people treat as a sign; we treat as a lock.', 'numeric'),
     lockRow('num_333', '333 Hz', '333 Hz', 333.0, 64,
-      'E4≈333 Hz on the A≈444 grid. Number label only.', 'numeric'),
+      'Three-three-three. E sits near 333 on the 444 grid. A chantable number. A degree, not a prophecy.', 'numeric'),
     lockRow('num_444', '444 Hz', '444 Hz', 444.0, 69,
-      'A4=444 Hz exactly. Concert pitch of the solfeggio world, as a numbered lock.', 'numeric'),
+      'Four-four-four. This is A itself at 444 — the concert pitch of the solfeggio world, written as a number instead of a name. Same neighborhood as Heart C528.', 'numeric'),
     lockRow('num_555', '555 Hz', '555 Hz', 555.0, 73,
-      'C#5≈555 Hz, near modern A=440. Number label only.', 'numeric'),
+      'Five-five-five. C-sharp sits near 555, close to modern A=440. A bright number on an almost-ISO grid.', 'numeric'),
     lockRow('num_666', '666 Hz', '666 Hz', 666.0, 76,
-      'E5≈666 Hz on the A≈444 grid. Number label only.', 'numeric'),
+      'Six-six-six. E sits near 666 on the 444 grid. The famous number, used here as a pitch class, not a plot.', 'numeric'),
     lockRow('num_777', '777 Hz', '777 Hz', 777.0, 79,
-      'G5≈777 Hz. Number label only.', 'numeric'),
+      'Seven-seven-seven. G near 777. A lucky number in a lot of cultures; a degree in this one.', 'numeric'),
     lockRow('num_888', '888 Hz', '888 Hz', 888.0, 81,
-      'A5=888 Hz. Two octaves above 222; A=444 grid. Number label only.', 'numeric'),
+      'Eight-eight-eight. A at 888 — two octaves above 222, still the 444 world. Infinity on its side, if you like that sort of lore.', 'numeric'),
     lockRow('num_999', '999 Hz', '999 Hz', 999.0, 83,
-      'B5≈999 Hz. Number label only.', 'numeric'),
+      'Nine-nine-nine. B near 999, the top of the repeating-digit ladder we ship. Completion, in the folklore. A high B, in the music.', 'numeric'),
     lockRow('newgrange_110', 'Newgrange 110', 'Newgrange · 110 Hz', 110.0, 45,
-      'Measured chamber resonance. A2=110 at modern A=440 — exact degree.', 'sites'),
+      'Newgrange, the Irish passage tomb, rings its chamber near 110 Hz. That is A at modern 440. A measured stone room, not a myth we invented. We lock that A so a song can sit in the same grid as the chamber.', 'sites'),
     lockRow('hypogeum_111', '111 Hz survey', '111 Hz · megalithic survey', 111.0, 45,
-      '111 Hz is A2 on the A=444 grid (111×4=444). The 110–112 Hz figure is from a wider megalithic survey, not the Hal Saflieni double resonance (70 / 114 Hz). Same render as numeric 111 Hz.', 'sites'),
+      'Surveys of megalithic rooms often cite 110 to 112 Hz. 111 is A on the 444 grid. Not the famous Hal Saflieni pair (70 and 114). Same render as numeric 111 — a stone echo, written as a number.', 'sites'),
     lockRow('fork_128', 'Fork 128', 'Otto fork · C = 128 Hz', 128.0, 48,
-      'C3=128. Implies A4≈430.54 — same world as C4=256. Pythagoras would have loved this one.', 'sites'),
+      'Scientific and medical forks often used C=128. Power-of-two thinking again: double it to 256 and you are at scientific middle C. Implies A near 430.54. Otto would recognize the number.', 'sites'),
     lockRow('c256', 'C256', 'Scientific C4 = 256 Hz', 256.0, 60,
-      'Power-of-two middle C. A4 ≈ 430.54 Hz.', 'sites'),
+      'Middle C as 256 Hz exactly — a power of two, beloved by 19th-century acousticians. Concert A falls out near 430.54, same world as the 128 fork. Math as a tuning fork.', 'sites'),
     lockRow('ext_1074', '1074 Hz', '1074 Hz', 1074.0, 84,
-      'Extended-set C6 lock. Number label only.', 'extended'),
+      'An extended-set C, one octave above the Heart C528 neighborhood. High, still a degree lock. For when the catalogue wants the next floor of the C chain.', 'extended'),
     lockRow('ext_1152', '1152 Hz', '1152 Hz', 1152.0, 86,
-      'Lands on the A=432 world. Number label only.', 'extended'),
+      '1152 sits on the A=432 world — a high cousin of the cosmic grid. For the Verdi neighborhood, upstairs.', 'extended'),
     lockRow('ext_1174', '1174 Hz', '1174 Hz', 1174.0, 86,
-      'D6 lock, nearly A=440. Number label only.', 'extended'),
+      'A high D lock, nearly modern A=440. Extended-set. Barely a retune from a commercial master.', 'extended'),
     lockRow('ext_2172', '2172 Hz', '2172 Hz', 2172.0, 96,
-      'C7 lock. Edge of the ±80¢ rail (~+64¢) — warn, do not reject.', 'extended'),
+      'A very high C. Near the edge of the comfort rail. We warn, we do not refuse. Upstairs of upstairs.', 'extended'),
   ];
   const SOLFEGGIO_ALL = [...SOLFEGGIO_PRESETS, ...LOCK_EXTRAS];
   const LOCK_FAMILIES = [
@@ -1458,19 +1478,19 @@
   ];
   const MODULATION_PRESETS = [
     mod('schumann_7_83', 'Schumann 7.83', 'Schumann · 7.83 Hz', 7.83,
-      'Earth-ionosphere resonance, used as a rhythm. Not a scale degree. Headphones for binaural; music-AM is off pending FTO.'),
+      'The Earth and its ionosphere ring together near 7.83 Hz — a planetary bass note you cannot hear as a pitch. We use it as a rhythm, not a scale degree. Headphones for binaural. We will not pretend this is an A.'),
     mod('delta_2', 'Delta 2', 'Delta · 2 Hz', 2,
-      'Delta-band rate. Binaural / isochronic on a generated tone — not a retune of the track.'),
+      'Delta is the slowest common brain-rhythm band, associated with deep sleep. Here it is a 2 Hz pulse on a generated tone — not a retune of your song.'),
     mod('theta_6', 'Theta 6', 'Theta · 6 Hz', 6,
-      'Theta-band rate. Binaural / isochronic on a generated tone — not a retune of the track.'),
+      'Theta is the twilight band — drowsing, drifting, the edge of dream. A 6 Hz rate on a generated tone. The track stays the track.'),
     mod('alpha_10', 'Alpha 10', 'Alpha · 10 Hz', 10,
-      'Alpha-band rate. Binaural / isochronic on a generated tone — not a retune of the track.'),
+      'Alpha is the eyes-closed rest band, often around 10 Hz. Associated with calm alertness. A rate, not a key.'),
     mod('smr_13', 'SMR 13', 'SMR · 13 Hz', 13,
-      'Sensorimotor-rhythm rate. Binaural / isochronic on a generated tone — not a retune of the track.'),
+      'Sensorimotor rhythm, around 13 Hz — the quiet ready body. A rate on a generated tone.'),
     mod('beta_18', 'Beta 18', 'Beta · 18 Hz', 18,
-      'Beta-band rate. Binaural / isochronic on a generated tone — not a retune of the track.'),
+      'Beta is ordinary waking thought, a little faster. 18 Hz as a pulse, not as a note in the mix.'),
     mod('gamma_40', 'Gamma 40', 'Gamma · 40 Hz', 40,
-      '40 Hz is three products: a rate, a sub-bass tone, and a vibration band. Default path is modulation — Play/Convert will not invent an A4.'),
+      '40 Hz is famous three ways: a brain-rhythm band, a sub-bass you can hear, and a vibration people feel. Default path is modulation. Play and Save will not invent a fake A to pretend this is a retune.'),
   ];
 
   const PRESETS = Object.fromEntries(
@@ -1549,14 +1569,14 @@
     section.style.opacity = '1';
     section.style.pointerEvents = 'auto';
     if (state.mode === 'concert_a') {
-      label.innerHTML = 'Presets · Concert A';
-      hint.textContent = 'Historical orchestra A4 targets plus the solfeggio world (A≈444). Default stays Verdi 432.';
+      label.innerHTML = 'Presets · Concert pitch';
+      hint.textContent = 'Where the orchestra A sits. Historical A4 targets plus the solfeggio world (A≈444). Default stays Verdi 432.';
     } else if (state.mode === 'modulation_rate') {
       label.innerHTML = 'Presets · Modulation rate';
       hint.textContent = 'Rates, not scale degrees. Play/Convert refuse a fake A4. Binaural is headphone-only.';
     } else {
-      label.innerHTML = 'Presets · Solfeggio lock';
-      hint.textContent = 'Locks a frequency onto a scale degree. A4 is solved from that lock — not forced equal to F. Families are tabs, not one dump row.';
+      label.innerHTML = 'Presets · Tone lock';
+      hint.textContent = 'Pin a named tone onto a scale degree. A4 is solved from that lock — not forced equal to the tone. Families are tabs, not one dump row.';
     }
     if (!list.find(p => p.id === state.preset)) state.preset = list[0].id;
     box.innerHTML = '';
@@ -1576,8 +1596,8 @@
     const p = resolvePreset();
     const isMod = state.mode === 'modulation_rate' || p.kind === 'modulation';
     const modeName = state.mode === 'bypass' ? 'Bypass'
-      : (state.mode === 'solfeggio_lock' ? 'Solfeggio lock'
-        : (state.mode === 'modulation_rate' ? 'Modulation' : 'Concert A'));
+      : (state.mode === 'solfeggio_lock' ? 'Tone lock'
+        : (state.mode === 'modulation_rate' ? 'Modulation' : 'Concert pitch'));
     document.getElementById('modeLabel').textContent = modeName;
 
     document.getElementById('lcdTgtK').textContent = isMod ? 'Rate' : 'Target A4';

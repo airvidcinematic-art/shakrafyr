@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShakraFyr — nomenclature</title>
+<style>
+  @font-face {
+    font-family: "Azo Sans";
+    src: url("../../../public/fonts/AzoSans-Regular.ttf") format("truetype");
+    font-weight: 400; font-display: swap;
+  }
+  @font-face {
+    font-family: "Azo Sans";
+    src: url("../../../public/fonts/AzoSans-Medium.ttf") format("truetype");
+    font-weight: 500; font-display: swap;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Azo Sans", system-ui, sans-serif;
+    color: #2a241c;
+    background: #ebe4d4;
+    padding: 18px 16px 32px;
+    line-height: 1.45;
+  }
+  h1 { font-size: 15px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase; margin: 0 0 4px; }
+  .lede { font-size: 13px; color: #6b6259; margin: 0 0 18px; max-width: 58ch; }
+  h2 {
+    font-size: 11px; font-weight: 500; letter-spacing: 0.16em; text-transform: uppercase;
+    color: #6b5344; margin: 22px 0 8px;
+  }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .card {
+    background: #f8f5ed;
+    border: 1px solid rgba(139,111,71,0.35);
+    border-radius: 8px;
+    padding: 10px 12px;
+    min-width: 140px;
+    flex: 1 1 160px;
+  }
+  .card b { display: block; font-size: 13px; font-weight: 600; margin-bottom: 4px; }
+  .card span { display: block; font-size: 12px; color: #5c4633; }
+  .card em { display: block; margin-top: 6px; font-style: normal; font-size: 11px; color: #8b6f47; letter-spacing: 0.04em; }
+  .warn { border-color: rgba(139,58,58,0.45); }
+  .flow {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr auto 1fr;
+    gap: 8px;
+    align-items: stretch;
+    margin: 8px 0 4px;
+  }
+  .flow .card { flex: none; }
+  .arrow { display: grid; place-items: center; color: #8b6f47; font-size: 18px; }
+  table { width: 100%; border-collapse: collapse; font-size: 12px; background: #f8f5ed; }
+  th, td { text-align: left; padding: 7px 10px; border-bottom: 1px solid rgba(139,111,71,0.22); vertical-align: top; }
+  th { letter-spacing: 0.08em; text-transform: uppercase; font-size: 10px; color: #6b6259; font-weight: 500; }
+  .note { font-size: 12px; color: #6b6259; max-width: 62ch; margin: 8px 0 0; }
+  @media (max-width: 640px) {
+    .flow { grid-template-columns: 1fr; }
+    .arrow { transform: rotate(90deg); height: 18px; }
+  }
+</style>
+</head>
+<body>
+  <h1>ShakraFyr nomenclature</h1>
+  <p class="lede">How the window names things. Internal ids stay concert_a / solfeggio_lock. This is the language a person should see.</p>
+
+  <h2>Two jobs</h2>
+  <div class="row">
+    <div class="card">
+      <b>Concert pitch</b>
+      <span>Move the whole orchestra so A sits at a chosen Hertz. The song keeps its key. Default is Verdi 432.</span>
+      <em>was: Concert A</em>
+    </div>
+    <div class="card">
+      <b>Tone lock</b>
+      <span>Pin a named tone onto a scale degree. A is solved from that lock — never forced equal to the tone.</span>
+      <em>was: Solfeggio lock</em>
+    </div>
+    <div class="card">
+      <b>Modulation</b>
+      <span>A rate, not a note. Brain-rhythm and Schumann live here. Play/Save will not invent a fake A.</span>
+    </div>
+    <div class="card">
+      <b>Bypass</b>
+      <span>Hear the original. No retune. Presets dim.</span>
+    </div>
+  </div>
+
+  <h2>How a lock becomes a retune</h2>
+  <div class="flow">
+    <div class="card"><b>1. Named tone</b><span>528 Hz, 639 Hz, OM 136…</span></div>
+    <div class="arrow">→</div>
+    <div class="card"><b>2. Lock note</b><span>C5, D♯5, C♯3… the degree that wears that Hertz.</span></div>
+    <div class="arrow">→</div>
+    <div class="card"><b>3. Concert A falls out</b><span>The rest of the 12-tone grid slides with it. Ratio = target A / source A.</span></div>
+  </div>
+  <p class="note">Never set A itself to 528. That would transpose the song by about three semitones. The tiles under the story (Source A4 / Target A4 / Lock / Ratio) are the math. The paragraph above them is the lore.</p>
+
+  <h2>Two hearts — do not mix the maps</h2>
+  <div class="row">
+    <div class="card">
+      <b>Heart C528 · MI</b>
+      <span>Love, repair, coming back to center. Solfeggio syllable MI. Marketing often calls this “the heart frequency.” In the 7-chakra set it is solar plexus. Lock: C = 528. A ≈ 444.</span>
+    </div>
+    <div class="card warn">
+      <b>Heart 639 · Anahata</b>
+      <span>The 7-chakra heart. Connection, the space between two people. Lock: D♯ = 639. A ≈ 452. Different job from 528.</span>
+    </div>
+  </div>
+
+  <h2>Worlds</h2>
+  <div class="row">
+    <div class="card"><b>A = 432</b><span>Cosmic / Verdi. Owns OM 136 and 1152. C5 here is ~514, not 528.</span></div>
+    <div class="card"><b>A ≈ 444</b><span>Solfeggio world. C5 = 528 produces this A. Most “angel numbers” live here (111 × 4 = 444).</span></div>
+    <div class="card"><b>A = 440</b><span>ISO 16. The grid most records, DAWs, and school bands assume.</span></div>
+  </div>
+  <p class="note">A=432 and C=528 cannot both be exact in 12-tone equal temperament (~47 ¢ apart). Two intents → two renders.</p>
+
+  <h2>Tone-lock families</h2>
+  <table>
+    <thead><tr><th>Tab</th><th>What it is</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Solfeggio</td><td>Named tones from the solfeggio / chakra catalogues</td><td>Root 396, Heart C528, Heart 639, Throat 741</td></tr>
+      <tr><td>Cosmic</td><td>Cousto: a planet or Earth period, octave-folded until you can hear it</td><td>OM 136, Moon 210, Sun 126</td></tr>
+      <tr><td>Numeric</td><td>Repeating-digit “angel numbers” — actually the 444 grid and its octaves</td><td>111, 444, 888</td></tr>
+      <tr><td>Sites</td><td>Measured rooms and scientific forks</td><td>Newgrange 110, C256</td></tr>
+      <tr><td>Extended</td><td>Higher octaves of the same idea</td><td>1152, 2172</td></tr>
+    </tbody>
+  </table>
+
+  <h2>Words on the player</h2>
+  <table>
+    <thead><tr><th>UI word</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>Source A4</td><td>Where this file already sits (detected, not assumed 440)</td></tr>
+      <tr><td>Target A4</td><td>Where the orchestra A will sit after the retune</td></tr>
+      <tr><td>Lock</td><td>The note we pinned, and the Hertz it wears</td></tr>
+      <tr><td>Ratio</td><td>Target A ÷ source A. Tempo stays. Original stays.</td></tr>
+      <tr><td>¢</td><td>Cents. 100 ¢ = one semitone. The sliding bar under RE-Tune.</td></tr>
+      <tr><td>Play</td><td>Hear the retune. Does not write a file.</td></tr>
+      <tr><td>Save retuned file</td><td>The only burn-in. Writes a copy. Original is never overwritten.</td></tr>
+    </tbody>
+  </table>
+
+  <p class="note">Copy rule: title names the tone. The paragraph tells the story (lore, legend, a fact). The tiles hold the engineering. No medical claims — “associated with / people reach for,” never “cures.”</p>
+</body>
+</html>
