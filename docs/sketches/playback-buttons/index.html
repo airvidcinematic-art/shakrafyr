@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>ShakraFyr — playback buttons</title>
+<style>
+  @font-face {
+    font-family: "Azo Sans";
+    src: url("../../../public/fonts/AzoSans-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-display: swap;
+  }
+  @font-face {
+    font-family: "Azo Sans";
+    src: url("../../../public/fonts/AzoSans-Medium.ttf") format("truetype");
+    font-weight: 500;
+    font-display: swap;
+  }
+  :root { --ease: cubic-bezier(0.83, 0, 0.17, 1); }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; }
+  body {
+    font-family: "Azo Sans", system-ui, sans-serif;
+    color: var(--fg);
+    background: var(--bg);
+    padding: 18px 16px 28px;
+  }
+  h1 { font-size: 15px; font-weight: 500; letter-spacing: 0.14em; text-transform: uppercase; margin: 0 0 4px; }
+  .lede { font-size: 12px; color: var(--muted); margin: 0 0 18px; max-width: 52ch; line-height: 1.45; }
+
+  .stage {
+    --bg: #05000a;
+    --fg: #f6f6fb;
+    --muted: #8a7fa8;
+    --accent: #00f3ff;
+    --accent2: #bd00ff;
+    --border: rgba(0, 243, 255, 0.35);
+    --shadow: rgba(0,0,0,0.55);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px 16px;
+    margin: 0 0 14px;
+    background: var(--panel);
+  }
+  .stage[data-skin="marble-light"] {
+    --bg: #ebe4d4;
+    --panel: #f8f5ed;
+    --fg: #2a241c;
+    --muted: #6b6259;
+    --accent: #8b6f47;
+    --accent2: #6b5344;
+    --border: rgba(139,111,71,0.38);
+    --shadow: rgba(60,45,30,0.16);
+    background: #f8f5ed;
+  }
+  .stage[data-skin="marble-dark"] {
+    --bg: #050506;
+    --panel: #0c0c0e;
+    --fg: #f6f6fb;
+    --muted: #b4b4c2;
+    --accent: #e8e8f2;
+    --accent2: #c8c8d8;
+    --border: rgba(230,230,245,0.28);
+    --shadow: rgba(0,0,0,0.55);
+    background: #0a0a0c;
+  }
+  .stage[data-skin="neon"] {
+    --bg: #05000a;
+    --panel: rgba(20,5,40,0.72);
+    --fg: #ffffff;
+    --muted: #8a7fa8;
+    --accent: #00f3ff;
+    --accent2: #bd00ff;
+    --border: rgba(0,243,255,0.35);
+    background:
+      radial-gradient(circle at 18% 0%, rgba(189,0,255,0.18), transparent 42%),
+      #0a0015;
+  }
+  .skin-label {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin: 0 0 10px;
+  }
+
+  .transport {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+  }
+  .transport-left, .transport-right { display: flex; align-items: center; gap: 6px; }
+
+  .icon-btn {
+    width: 36px; height: 36px; padding: 0;
+    border: 1px solid var(--border);
+    border-radius: 7px;
+    color: var(--fg);
+    display: grid; place-items: center;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    background: color-mix(in srgb, var(--bg) 55%, var(--panel));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.22), inset 0 -2px 4px rgba(0,0,0,0.28), 0 2px 6px var(--shadow);
+    transition: transform 0.18s var(--ease), filter 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  }
+  .icon-btn svg { width: 16px; height: 16px; fill: currentColor; display: block; pointer-events: none; }
+  .icon-btn .g-pause { opacity: 0; }
+  .icon-btn.playing .g-play { opacity: 0; }
+  .icon-btn.playing .g-pause { opacity: 1; }
+  .icon-btn .g-play, .icon-btn .g-pause { transition: opacity 0.16s var(--ease); }
+  .icon-btn::after {
+    content: "";
+    position: absolute; inset: 0;
+    background: linear-gradient(105deg, transparent 28%, rgba(255,255,255,0.38) 50%, transparent 72%);
+    transform: translateX(-130%);
+    transition: transform 0.55s var(--ease);
+    pointer-events: none;
+  }
+  .icon-btn:hover { transform: translateY(-1px) scale(1.04); filter: brightness(1.08); }
+  .icon-btn:hover::after { transform: translateX(130%); }
+  .icon-btn:active { transform: scale(0.96); }
+  .icon-btn:disabled { opacity: 0.38; cursor: default; transform: none; filter: none; }
+  .icon-btn.seek { color: var(--accent); border-color: color-mix(in srgb, var(--accent) 55%, var(--border)); }
+  .icon-btn.primary {
+    width: 46px; height: 46px; border-radius: 50%;
+    color: var(--accent);
+    border-color: var(--accent);
+    background:
+      radial-gradient(circle at 35% 28%, rgba(255,255,255,0.28), transparent 42%),
+      linear-gradient(180deg, color-mix(in srgb, var(--accent) 28%, var(--panel)), var(--bg));
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.35), 0 0 10px color-mix(in srgb, var(--accent) 40%, transparent);
+  }
+  .icon-btn.primary svg { width: 18px; height: 18px; }
+  .icon-btn.primary.playing { animation: play-breathe 2.4s ease-in-out infinite; }
+  @keyframes play-breathe {
+    0%, 100% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.28), 0 0 8px color-mix(in srgb, var(--accent) 45%, transparent); }
+    50% { box-shadow: inset 0 1px 0 rgba(255,255,255,0.4), 0 0 18px color-mix(in srgb, var(--accent) 55%, transparent), 0 0 28px color-mix(in srgb, var(--accent2) 40%, transparent); }
+  }
+
+  .stage[data-skin="marble-light"] .icon-btn {
+    color: #5c4633;
+    border-color: rgba(90,70,45,0.38);
+    background: linear-gradient(180deg, #fbf6ec 0%, #e8dcc8 52%, #d4c4aa 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.78), inset 0 -2px 3px rgba(90,70,40,0.18), 0 2px 5px rgba(60,45,30,0.16);
+  }
+  .stage[data-skin="marble-light"] .icon-btn.seek { color: #6b5344; }
+  .stage[data-skin="marble-light"] .icon-btn.primary {
+    color: #4a3828;
+    border-color: rgba(90,70,45,0.45);
+    background: radial-gradient(circle at 34% 28%, rgba(255,255,255,0.7), transparent 44%), linear-gradient(180deg, #f3ead8, #c9b08a);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.85), inset 0 -3px 5px rgba(90,70,40,0.22), 0 3px 8px rgba(60,45,30,0.18);
+  }
+
+  .stage[data-skin="marble-dark"] .icon-btn {
+    color: #f2f2f8;
+    border-color: rgba(230,230,245,0.28);
+    background: linear-gradient(180deg, #2c2c34 0%, #121216 55%, #070708 100%);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.16), inset 0 -2px 6px rgba(0,0,0,0.55), 0 0 10px rgba(240,240,255,0.08);
+  }
+  .stage[data-skin="marble-dark"] .icon-btn::before {
+    content: "";
+    position: absolute; inset: 0;
+    background:
+      linear-gradient(118deg, transparent 38%, rgba(240,240,255,0.22) 41%, transparent 44%),
+      linear-gradient(28deg, transparent 58%, rgba(255,255,255,0.1) 61%, transparent 66%);
+    pointer-events: none;
+  }
+  .stage[data-skin="marble-dark"] .icon-btn.primary {
+    background: radial-gradient(circle at 34% 28%, rgba(255,255,255,0.22), transparent 46%), linear-gradient(180deg, #3a3a44, #0a0a0c);
+    border-color: rgba(240,240,255,0.42);
+  }
+
+  .stage[data-skin="neon"] .icon-btn.seek {
+    background: linear-gradient(180deg, rgba(0,243,255,0.22), rgba(20,5,40,0.85));
+  }
+
+  .chip {
+    min-height: 28px;
+    padding: 4px 10px;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    color: var(--muted);
+    font-family: inherit;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    cursor: pointer;
+    background: transparent;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.18s var(--ease), color 0.18s var(--ease), transform 0.18s var(--ease), box-shadow 0.18s var(--ease);
+  }
+  .chip:hover { color: var(--fg); transform: translateY(-1px) scale(1.04); }
+  .chip:active { transform: scale(0.96); }
+  .chip.active {
+    color: var(--fg);
+    background: color-mix(in srgb, var(--accent) 22%, transparent);
+    border-color: var(--accent);
+    box-shadow: 0 0 12px color-mix(in srgb, var(--accent) 35%, transparent);
+  }
+  .hint { margin-top: 8px; font-size: 11px; color: var(--muted); }
+</style>
+</head>
+<body>
+  <h1>ShakraFyr transport</h1>
+  <p class="lede">Vintage deck: squares for skip/stop, accent seek, circular play. Hover, press, click Play / Shuffle / Repeat. You’re driving.</p>
+
+  <section class="stage" data-skin="marble-light"></section>
+  <section class="stage" data-skin="marble-dark"></section>
+  <section class="stage" data-skin="neon"></section>
+
+<script>
+  const LABELS = {
+    "marble-light": "Marble · Light — carved cream stone",
+    "marble-dark": "Marble · Dark — black quartz veins",
+    neon: "Neon — cyan glass, playing glow"
+  };
+  const SVG = {
+    prev: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.2" y="6" width="2.4" height="12" rx="0.5"/><path d="M19.6 6.2 8.6 12l11 5.8Z"/></svg>',
+    rew: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12.2 6.2 4.4 12l7.8 5.8Z"/><path d="M20.4 6.2 12.6 12l7.8 5.8Z"/></svg>',
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="g-play" d="M8 5.4 19.2 12 8 18.6Z"/><g class="g-pause"><rect x="7" y="5.4" width="3.4" height="13.2" rx="0.6"/><rect x="13.6" y="5.4" width="3.4" height="13.2" rx="0.6"/></g></svg>',
+    stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.2"/></svg>',
+    fwd: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.6 6.2 11.4 12 3.6 17.8Z"/><path d="M11.8 6.2 19.6 12l-7.8 5.8Z"/></svg>',
+    next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.4 6.2 15.4 12 4.4 17.8Z"/><rect x="17.4" y="6" width="2.4" height="12" rx="0.5"/></svg>'
+  };
+  function row(skin) {
+    return `<div class="skin-label">${LABELS[skin]}</div>
+      <div class="transport">
+        <div class="transport-left">
+          <button type="button" class="icon-btn" title="Previous">${SVG.prev}</button>
+          <button type="button" class="icon-btn seek" title="Back 5s">${SVG.rew}</button>
+          <button type="button" class="icon-btn primary" title="Play" aria-label="Play">${SVG.play}</button>
+          <button type="button" class="icon-btn" title="Stop">${SVG.stop}</button>
+          <button type="button" class="icon-btn seek" title="Forward 5s">${SVG.fwd}</button>
+          <button type="button" class="icon-btn" title="Next">${SVG.next}</button>
+        </div>
+        <div class="transport-right">
+          <button type="button" class="chip" data-chip="shuffle">SHUFFLE</button>
+          <button type="button" class="chip" data-chip="repeat">REP</button>
+        </div>
+      </div>
+      <div class="hint">Empty playlist still reads — last button is disabled.</div>`;
+  }
+  document.querySelectorAll(".stage").forEach((el) => {
+    el.innerHTML = row(el.dataset.skin);
+    const last = el.querySelector(".transport-left .icon-btn:last-child");
+    if (last) last.disabled = true;
+    el.querySelector(".icon-btn.primary").addEventListener("click", (e) => {
+      const b = e.currentTarget;
+      const on = !b.classList.contains("playing");
+      b.classList.toggle("playing", on);
+      b.title = on ? "Pause" : "Play";
+      b.setAttribute("aria-label", on ? "Pause" : "Play");
+    });
+    el.querySelectorAll("[data-chip]").forEach((c) => {
+      c.addEventListener("click", () => c.classList.toggle("active"));
+    });
+  });
+</script>
+</body>
+</html>
