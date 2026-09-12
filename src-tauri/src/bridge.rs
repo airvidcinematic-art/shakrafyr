@@ -69,10 +69,11 @@ pub struct PrepareResult {
 }
 
 #[tauri::command]
-pub async fn pick_audio_files() -> Result<Vec<String>, String> {
-    // Async dialog on its own thread. Sync rfd::FileDialog from a Tauri
-    // command deadlocks the Windows IPC thread — the picker never appears.
+pub async fn pick_audio_files(window: tauri::WebviewWindow) -> Result<Vec<String>, String> {
+    // Async + parent HWND. Sync rfd from a Tauri command deadlocks Windows.
+    // Without set_parent the picker often never appears (or hides behind).
     let files = rfd::AsyncFileDialog::new()
+        .set_parent(&window)
         .set_title("Add tracks — ShakraFyr")
         .add_filter(
             "Audio",

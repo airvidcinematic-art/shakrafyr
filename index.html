@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-theme="marble">
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -214,24 +214,31 @@
   html, body {
     height: 100%;
     margin: 0;
-    background:
-      radial-gradient(circle at 20% 10%, rgba(189,0,255,0.10) 0px, transparent 220px),
-      radial-gradient(circle at 80% 30%, rgba(0,243,255,0.06) 0px, transparent 260px),
-      linear-gradient(180deg, #060010 0%, #040008 100%);
     color: var(--c432-text);
     font-family: var(--c432-font);
     -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
   }
+  html:not([data-theme="marble"]),
+  html:not([data-theme="marble"]) body {
+    background:
+      radial-gradient(circle at 20% 10%, rgba(189,0,255,0.10) 0px, transparent 220px),
+      radial-gradient(circle at 80% 30%, rgba(0,243,255,0.06) 0px, transparent 260px),
+      linear-gradient(180deg, #060010 0%, #040008 100%);
+  }
   body::before {
     content: "";
     position: fixed; inset: 0;
+    pointer-events: none;
+  }
+  html:not([data-theme="marble"]) body::before {
     background-image:
       linear-gradient(rgba(0, 243, 255, 0.04) 1px, transparent 1px),
       linear-gradient(90deg, rgba(0, 243, 255, 0.04) 1px, transparent 1px);
     background-size: 28px 28px, 28px 28px;
-    pointer-events: none;
   }
+  .theme-pair { display: flex; gap: 4px; margin-left: 8px; }
+  .theme-pair .chip { font-size: 9px; letter-spacing: 0.08em; padding: 3px 8px; }
   .stage {
     width: min(520px, 100%);
     margin: 18px auto;
@@ -821,9 +828,15 @@
       <div class="brand">
         <div class="brand-icon">♫</div>
         <span id="brandLabel">ShakraFyr</span>
-        <button id="themeToggle" class="theme-btn" title="Switch theme">◐</button>
+        <div class="theme-pair">
+          <button type="button" class="chip active" id="btnThemeMarble">Marble</button>
+          <button type="button" class="chip" id="btnThemeNeon">Neon</button>
+        </div>
       </div>
-      <div class="meta" id="playerMeta">ADD a track to detect A4</div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <div class="meta" id="playerMeta">ADD a track</div>
+        <button type="button" class="small-chip" id="btnAdd">ADD</button>
+      </div>
     </div>
     <div class="pad">
       <div class="timer" id="timer">0:00</div>
@@ -1009,7 +1022,7 @@
     </div>
     <div id="playlistBody" class="drop-zone"></div>
     <div class="list-actions">
-      <button class="small-chip" id="btnAdd">ADD</button>
+      <button type="button" class="small-chip" id="btnAddList">ADD</button>
       <button class="small-chip" id="btnRem">REM</button>
       <span style="flex:1"></span>
       <button class="small-chip" id="btnOpenLib">LIBRARY</button>
@@ -1557,15 +1570,12 @@
     function setTheme(theme) {
       document.documentElement.setAttribute('data-theme', theme);
       localStorage.setItem('shakrafyr-theme', theme);
+      const m = document.getElementById('btnThemeMarble');
+      const n = document.getElementById('btnThemeNeon');
+      if (m) m.classList.toggle('active', theme === 'marble');
+      if (n) n.classList.toggle('active', theme === 'neon');
     }
-    function toggleTheme() {
-      const current = document.documentElement.getAttribute('data-theme') || 'neon';
-      const next = current === 'marble' ? 'neon' : 'marble';
-      setTheme(next);
-    }
-    // Restore saved theme
-    const savedTheme = localStorage.getItem('shakrafyr-theme') || 'marble';
-    setTheme(savedTheme);
+    setTheme('marble');
 
     function invoke(cmd, args) {
       const c = core();
@@ -1605,8 +1615,12 @@
       document.getElementById('playlistMeta').textContent = 'Library · ' + n + ' track' + (n === 1 ? '' : 's');
       if (!n) {
         box.innerHTML = '<div class="track"><div class="track-num">—</div><div class="track-title">ADD a wav / mp3 / flac</div><div class="track-meta"></div><div class="track-meta"></div></div>';
+        box.style.cursor = 'pointer';
+        box.onclick = () => addFiles();
         return;
       }
+      box.style.cursor = '';
+      box.onclick = null;
       box.innerHTML = '';
       playlist.forEach((t, i) => {
         const row = document.createElement('div');
@@ -1785,6 +1799,8 @@
     document.getElementById('btnRew').addEventListener('click', () => { audio.currentTime = Math.max(0, (audio.currentTime || 0) - 5); });
     document.getElementById('btnFwd').addEventListener('click', () => { audio.currentTime = (audio.currentTime || 0) + 5; });
     document.getElementById('btnAdd').addEventListener('click', () => addFiles());
+    const btnAddList = document.getElementById('btnAddList');
+    if (btnAddList) btnAddList.addEventListener('click', () => addFiles());
     const dropBox = document.getElementById('playlistBody');
     const evApi = window.__TAURI__ && window.__TAURI__.event;
     if (evApi && evApi.listen) {
@@ -1793,8 +1809,10 @@
       });
       evApi.listen('files-dropped', (e) => ingestPaths(e.payload || []));
     }
-    const themeBtn = document.getElementById('themeToggle');
-    if (themeBtn) themeBtn.addEventListener('click', toggleTheme);
+    const btnMarble = document.getElementById('btnThemeMarble');
+    const btnNeon = document.getElementById('btnThemeNeon');
+    if (btnMarble) btnMarble.addEventListener('click', () => setTheme('marble'));
+    if (btnNeon) btnNeon.addEventListener('click', () => setTheme('neon'));
     document.getElementById('btnRem').addEventListener('click', () => removeCurrent());
     document.getElementById('btnApply').addEventListener('click', () => playLive());
     document.getElementById('btnConvert').addEventListener('click', () => queueConvert());
