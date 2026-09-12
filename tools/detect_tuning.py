@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Convert432 tuning detection — pure numpy/scipy (no librosa).
+"""ShakraFyr tuning detection — pure numpy/scipy (no librosa).
 
 Pipeline
 --------
@@ -294,7 +294,7 @@ def run_pipeline(path: str | Path, target: str = "concert_432") -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Convert432 tuning detector")
+    p = argparse.ArgumentParser(description="ShakraFyr tuning detector")
     p.add_argument("input", nargs="?", help="audio file (wav, mp3, …)")
     p.add_argument("--gen-fixtures", action="store_true", help="write test fixtures then exit")
     p.add_argument(
@@ -338,7 +338,7 @@ def main(argv: list[str] | None = None) -> int:
     else:
         d = out["detection"]
         r = out["resolve"]
-        print("=== Convert432 tuning detection ===")
+        print("=== ShakraFyr tuning detection ===")
         print(f"file:       {out['path']}")
         print(f"sr:         {out['sr']} Hz  duration: {out['duration_s']:.2f}s")
         print(f"method:     {d['method']}")

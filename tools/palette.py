@@ -1,4 +1,4 @@
-"""SHAKRA-FYER frequency palette — worlds, families, roles.
+"""ShakraFyr frequency palette — worlds, families, roles.
 
 SSOT for lock tones beyond the original solfeggio set. DSP does not live here:
 src-tauri/src/bridge.rs handles the bridge from these labels to the audio engine.

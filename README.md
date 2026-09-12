@@ -1,4 +1,4 @@
-# Convert432
+# ShakraFyr
 
 Winamp-style jukebox + library converter. Detects concert pitch of a file, then retunes it to **Concert A** (default 432 Hz) or a **Solfeggio note-lock** (example: heart C5 = 528 Hz → A4 ≈ 444 Hz) without changing tempo or rewriting the original.
 

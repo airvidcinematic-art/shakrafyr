@@ -1,7 +1,7 @@
 [package]
 name = "convert432"
 version = "0.1.0"
-description = "Convert432 — concert pitch and Solfeggio retune jukebox"
+description = "ShakraFyr — concert pitch and Solfeggio retune jukebox"
 authors = ["iHeal Collective"]
 edition = "2021"
 

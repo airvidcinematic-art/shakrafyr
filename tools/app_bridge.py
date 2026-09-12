@@ -1,4 +1,4 @@
-"""JSON IPC for the Convert432 desktop shell.
+"""JSON IPC for the ShakraFyr desktop shell.
 
 Tauri spawns this; stdout is one JSON object. Originals are never overwritten.
 """
@@ -57,7 +57,7 @@ def run_shift(src: str | Path, dest: str | Path, ratio: float) -> dict:
 
 
 def main(argv: list[str] | None = None) -> int:
-    p = argparse.ArgumentParser(description="Convert432 app bridge")
+    p = argparse.ArgumentParser(description="ShakraFyr app bridge")
     sub = p.add_subparsers(dest="cmd", required=True)
 
     d = sub.add_parser("detect")

@@ -1,6 +1,6 @@
 {
   "$schema": "https://schema.tauri.app/config/2",
-  "productName": "Convert432",
+  "productName": "ShakraFyr",
   "version": "0.1.0",
   "identifier": "com.convert432.app",
   "build": {
@@ -14,7 +14,7 @@
     "windows": [
       {
         "label": "main",
-        "title": "Convert432",
+        "title": "ShakraFyr",
         "width": 560,
         "height": 900,
         "minWidth": 380,

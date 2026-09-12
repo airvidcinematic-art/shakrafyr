@@ -69,18 +69,21 @@ pub struct PrepareResult {
 }
 
 #[tauri::command]
-pub fn pick_audio_files() -> Result<Vec<String>, String> {
-    let files = rfd::FileDialog::new()
-        .set_title("Add tracks — Convert432")
+pub async fn pick_audio_files() -> Result<Vec<String>, String> {
+    // Async dialog on its own thread. Sync rfd::FileDialog from a Tauri
+    // command deadlocks the Windows IPC thread — the picker never appears.
+    let files = rfd::AsyncFileDialog::new()
+        .set_title("Add tracks — ShakraFyr")
         .add_filter(
             "Audio",
             &["wav", "mp3", "flac", "ogg", "m4a", "aac", "aiff", "aif"],
         )
         .pick_files()
+        .await
         .unwrap_or_default();
     Ok(files
         .into_iter()
-        .map(|p| p.to_string_lossy().into_owned())
+        .map(|p| p.path().to_string_lossy().into_owned())
         .collect())
 }
 
