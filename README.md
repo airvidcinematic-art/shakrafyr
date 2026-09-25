@@ -2,7 +2,7 @@
 
 Winamp-style jukebox + library converter. Detects concert pitch of a file, then retunes it to **Concert A** (default 432 Hz) or a **Solfeggio note-lock** (example: heart C5 = 528 Hz → A4 ≈ 444 Hz) without changing tempo or rewriting the original.
 
-**v0.1.0** on local `dev`. Installer builds (`.msi` / `-setup.exe`) land in `src-tauri/target/release/bundle/`. Remote: `origin` = `airvidcinematic-art/shakrafyr` (public GitHub) — push only when asked.
+**v0.1.0** on local `dev`. Default window **860×960** (min 640). Installer builds (`.msi` / `-setup.exe`) land in `src-tauri/target/release/bundle/`. Remote: `origin` = `airvidcinematic-art/shakrafyr` (public GitHub) — push only when asked.
 
 ## What it does (today)
 
@@ -22,7 +22,7 @@ It will **not** set A4 = 528. That would be a ~3-semitone transpose. Heart lock 
 | [`docs/adr/001-tuning-modes.md`](docs/adr/001-tuning-modes.md) | Concert-A vs Solfeggio-lock product rules |
 | [`docs/adr/002-worlds-and-modulation.md`](docs/adr/002-worlds-and-modulation.md) | Worlds 444/432, palette families, sub-audio refuse, music-AM FTO gate |
 | [`docs/design/theme-neon-glass-jukebox.md`](docs/design/theme-neon-glass-jukebox.md) | Neon-glass visual SSOT (Azo Sans) |
-| [`docs/git-workflow.md`](docs/git-workflow.md) | Local `main` / `dev` / worktrees |
+| [`docs/git-workflow.md`](docs/git-workflow.md) | Git layout: local `dev`/`main` worktrees + public remote |
 | [`.hermes/plans/2026-09-08_195950-convert432.md`](.hermes/plans/2026-09-08_195950-convert432.md) | Implementation plan (status tail is SSOT) |
 
 ## Run
@@ -34,6 +34,7 @@ cd C:/Users/shaon/Projects/Convert432
 python -m pytest tests/ -q          # 46 passed (2026-09-25)
 cd src-tauri && cargo test          # 4 bridge integration tests
 npm run tauri dev                   # window + http://localhost:1432
+npm run tauri build                 # release exe + MSI/NSIS into src-tauri/target/release/
 ```
 
 Port **1432** is mandatory (`strictPort`). **1421 is GateMaster Lite** on this machine.
@@ -59,14 +60,14 @@ tools/app_bridge.py → detect_tuning.py + pitch_shift.py → ffmpeg rubberband
 
 Not built yet: React, SQLite library, Rust resolver, cpal live engine, stream intercept.
 
-## Git (local only)
+## Git
 
 | Tree | Branch | Role |
 |------|--------|------|
 | `C:\Users\shaon\Projects\Convert432` | `dev` | Daily — edit and run here |
-| `.worktrees\main` | `main` | Frozen shell snapshot |
+| `.worktrees\main` | `main` | Frozen stable snapshot |
 
-No `origin` — **yes there is**: `https://github.com/airvidcinematic-art/shakrafyr.git` (public). Push only when asked.
+Remote: `origin` = `https://github.com/airvidcinematic-art/shakrafyr.git` (**public**). Push only when asked. "Online/share" = push `origin/dev` **and** fast-forward `origin/main` (a fresh clone defaults to `main`). Full layout + promote rules: `docs/git-workflow.md`.
 
 ## Troubleshooting
 
