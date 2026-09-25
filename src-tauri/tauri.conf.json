@@ -15,9 +15,9 @@
       {
         "label": "main",
         "title": "ShakraFyr",
-        "width": 560,
-        "height": 900,
-        "minWidth": 380,
+        "width": 860,
+        "height": 960,
+        "minWidth": 640,
         "minHeight": 640,
         "resizable": true,
         "theme": "Dark",
