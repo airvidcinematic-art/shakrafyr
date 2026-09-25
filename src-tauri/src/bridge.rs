@@ -202,3 +202,62 @@ pub fn library_filename(stem: String, preset_id: String, pc: String, hz: f64) ->
         .map(|s| s.to_string())
         .ok_or_else(|| "name failed".into())
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn fixture(name: &str) -> String {
+        project_root()
+            .join("fixtures")
+            .join(name)
+            .to_string_lossy()
+            .into_owned()
+    }
+
+    fn cents_from_440(a4: f64) -> f64 {
+        1200.0 * (a4 / 440.0).log2()
+    }
+
+    #[test]
+    fn detect_chord_a440_via_python_bridge() {
+        // The exact command the window's ADD flow calls. Requires python +
+        // ffmpeg on PATH (the app's own runtime deps).
+        let v = detect_tuning(fixture("chord_Cmaj_A440.wav")).expect("bridge detect");
+        let a4 = v["a4_hz"].as_f64().expect("a4_hz");
+        assert!(
+            cents_from_440(a4).abs() < 3.0,
+            "A4={a4:.2} Hz ({:+.2} ¢ from 440)",
+            cents_from_440(a4)
+        );
+    }
+
+    #[test]
+    fn prepare_play_caches_retuned_sidecar() {
+        let src = fixture("chord_Cmaj_A440.wav");
+        let r = prepare_play(src.clone(), 432.0 / 440.0).expect("prepare_play");
+        let dest = PathBuf::from(&r.path);
+        assert!(dest.exists(), "sidecar missing: {}", dest.display());
+        assert!((r.ratio - 432.0 / 440.0).abs() < 1e-12);
+        assert!(dest != PathBuf::from(&src), "must not overwrite the original");
+
+        // Second call for the same source+ratio must hit the cache.
+        let r2 = prepare_play(src, 432.0 / 440.0).expect("prepare_play again");
+        assert_eq!(r2.path, r.path);
+        assert!(r2.cached, "cache reuse expected");
+    }
+
+    #[test]
+    fn bypass_returns_original_path() {
+        let r = prepare_play(fixture("sine_A4_440.wav"), 1.0).expect("bypass");
+        assert_eq!(PathBuf::from(&r.path).file_name().unwrap(), "sine_A4_440.wav");
+        assert!(r.cached);
+    }
+
+    #[test]
+    fn library_name_via_bridge() {
+        let n = library_filename("Octopus Garden".into(), "concert_432".into(), "A".into(), 432.0)
+            .expect("name");
+        assert_eq!(n, "Octopus Garden [concert_432_A432].wav");
+    }
+}

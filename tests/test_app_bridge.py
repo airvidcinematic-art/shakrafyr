@@ -30,6 +30,14 @@ def test_library_filename_sharp_is_ascii():
     assert name == "song [heart_639_Ds639].wav"
 
 
+def test_library_filename_sanitizes_windows_forbidden_chars():
+    name = library_filename("my?song:part", "root_396", "G", 396)
+    assert name == "my_song_part [root_396_G396].wav"
+    name2 = library_filename("trailing.", "heart_528", "C", 528)
+    assert name2 == "trailing [heart_528_C528].wav"
+    assert "<" not in name and "?" not in name and ":" not in name
+
+
 def test_detect_sine_440_json():
     out = run_detect(SINE440)
     assert "a4_hz" in out

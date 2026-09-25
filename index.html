@@ -1711,11 +1711,13 @@
     if (state.mode === 'solfeggio_lock') { state.preset = 'heart_528'; state.family = 'solfeggio'; }
     if (state.mode === 'modulation_rate') state.preset = 'schumann_7_83';
     updateReadout();
+    engine.renderPlaylist();
     if (state.mode !== 'modulation_rate' && engine.playing()) engine.playLive();
   }
   function setPreset(el) {
     state.preset = el.dataset.preset;
     updateReadout();
+    engine.renderPlaylist();
     if (state.mode !== 'modulation_rate' && engine.playing()) engine.playLive();
   }
   function setAB(side) {
@@ -1867,7 +1869,7 @@
     const playlist = [];
     let idx = -1;
     let busy = false;
-    let keepTime = 0;
+    let loadedKey = '';
 
     function core() { return window.__TAURI__ && window.__TAURI__.core; }
 
@@ -1936,7 +1938,7 @@
     }
     function lockParts(p) {
       if (!p || p.kind !== 'solfeggio') return { pc: 'A', hz: Math.round(p && p.a4 ? p.a4 : 432) };
-      const m = String(p.lock).match(/([A-G])([♯#s])?\d?\s*=\s*([\d.]+)/);
+      const m = String(p.lock).match(/([A-G])([♯#s])?\d?\s*[=≈]\s*([\d.]+)/);
       if (m) return { pc: m[1] + (m[2] ? 's' : ''), hz: Math.round(+m[3]) };
       const h = String(p.lock).match(/([\d.]+)\s*$/);
       return { pc: 'H', hz: h ? Math.round(+h[1]) : Math.round(p.a4) };
@@ -2049,6 +2051,11 @@
       if (!p || p.a4 == null) return 1;
       return p.a4 / t.a4_hz;
     }
+    function currentKey() {
+      const t = current();
+      if (!t) return '';
+      return idx + ':' + playRatio().toFixed(6);
+    }
     async function playLive() {
       const t = current();
       if (!t) { meta('ADD a track first'); return; }
@@ -2058,13 +2065,18 @@
       }
       if (busy) return;
       busy = true;
-      keepTime = audio.currentTime || 0;
       const ratio = playRatio();
+      // Only carry the playhead when the loaded render matches what we are
+      // about to load — same track AND same ratio. Duration is identical
+      // across renders by design, so it can never identify a render.
+      const key = currentKey();
+      const keep = loadedKey === key ? (audio.currentTime || 0) : 0;
+      loadedKey = key;
       meta(Math.abs(ratio - 1) < 1e-9 ? 'Playing original…' : 'Shifting (tempo held)…');
       try {
         const prep = await invoke('prepare_play', { path: t.path, ratio });
         audio.src = fileSrc(prep.path);
-        if (keepTime > 0.25) audio.currentTime = keepTime;
+        if (keep > 0.25) audio.currentTime = keep;
         await audio.play();
         setPlayUi(true);
         meta(Math.abs(ratio - 1) < 1e-9 ? 'Original' : ('Playing · ratio ' + ratio.toFixed(4)));
@@ -2078,7 +2090,7 @@
     async function togglePlay() {
       if (!current()) { await addFiles(); return; }
       if (playing()) { audio.pause(); setPlayUi(false); return; }
-      if (audio.src && Math.abs((audio.duration || 0) - (current().duration_s || 0)) < 2) {
+      if (audio.src && loadedKey === currentKey()) {
         try { await audio.play(); setPlayUi(true); return; } catch (_) {}
       }
       await playLive();
@@ -2173,7 +2185,7 @@
       try { meta(await invoke('library_dir')); } catch (e) { meta(String(e)); }
     });
     renderPlaylist();
-    return { playing, current, playLive, addFiles };
+    return { playing, current, playLive, addFiles, renderPlaylist };
   })();
 
   updateReadout();

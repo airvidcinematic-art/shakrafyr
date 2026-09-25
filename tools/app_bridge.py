@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import re
 import sys
 from pathlib import Path
 
@@ -16,11 +17,20 @@ if str(_ROOT) not in sys.path:
 from tools.detect_tuning import estimate_tuning, load_wav_mono  # noqa: E402
 from tools.pitch_shift import decode_mono, shift_file  # noqa: E402
 
+_WIN_BAD = re.compile(r'[<>:"/\\|?*\x00-\x1f]')
+
+
+def _safe_stem(stem: str) -> str:
+    """Windows-safe filename stem: drop forbidden chars and trailing dots/spaces."""
+    s = _WIN_BAD.sub("_", stem)
+    s = s.rstrip(" .")
+    return s or "track"
+
 
 def library_filename(stem: str, preset_id: str, lock_pc: str, hz: int | float) -> str:
     """``song [root_396_G396].wav`` — pitch class without MIDI octave."""
     hz_i = int(round(float(hz)))
-    return f"{stem} [{preset_id}_{lock_pc}{hz_i}].wav"
+    return f"{_safe_stem(stem)} [{preset_id}_{lock_pc}{hz_i}].wav"
 
 
 def run_detect(path: str | Path) -> dict:

@@ -2,13 +2,13 @@
 
 Winamp-style jukebox + library converter. Detects concert pitch of a file, then retunes it to **Concert A** (default 432 Hz) or a **Solfeggio note-lock** (example: heart C5 = 528 Hz → A4 ≈ 444 Hz) without changing tempo or rewriting the original.
 
-**v0.1.0** on local `dev`. No installer yet. No GitHub remote.
+**v0.1.0** on local `dev`. Installer builds (`.msi` / `-setup.exe`) land in `src-tauri/target/release/bundle/`. Remote: `origin` = `airvidcinematic-art/shakrafyr` (public GitHub) — push only when asked.
 
 ## What it does (today)
 
 - **ADD** a wav/mp3/flac → STFT residual-histogram detect (source A4).
-- **Play / Apply to Play** → ffmpeg `rubberband` sidecar (`pitch=ratio`, `tempo=1`, `formant=shifted`), then HTML audio. First shift waits; repeats are cached under `%TEMP%\convert432-play\`.
-- **Preview A** = retune. **Preview B** / **Bypass** = original.
+- **Play / Apply to Play** → ffmpeg `rubberband` sidecar (`pitch=ratio`, `tempo=1`, `formant=shifted`), then HTML audio. First shift waits; repeats are cached under `%TEMP%\convert432-play\`. Changing mode/preset while paused rebuilds the render; the playhead only carries when the loaded render matches the new target.
+- **Bypass** (mode) = original. No separate Preview A/B buttons.
 - **Queue Convert** writes `ConvertedLibrary\{stem} [{preset}_{pc}{hz}].wav`. Originals are never overwritten. Duration stays put.
 - Modes: Concert A (historical A4 chips + solfeggio world A≈444) · Solfeggio lock (family tabs) · Modulation (rate — Play/Convert refuse a fake A4) · Bypass. Presets are children of the active mode. Concert default stays Verdi 432.
 
@@ -31,7 +31,8 @@ Needs: Node, Rust, Python with numpy/scipy, `ffmpeg` on PATH (rubberband filter)
 
 ```bash
 cd C:/Users/shaon/Projects/Convert432
-python -m pytest tests/ -q          # 45 passed (2026-09-11)
+python -m pytest tests/ -q          # 46 passed (2026-09-25)
+cd src-tauri && cargo test          # 4 bridge integration tests
 npm run tauri dev                   # window + http://localhost:1432
 ```
 
@@ -65,7 +66,7 @@ Not built yet: React, SQLite library, Rust resolver, cpal live engine, stream in
 | `C:\Users\shaon\Projects\Convert432` | `dev` | Daily — edit and run here |
 | `.worktrees\main` | `main` | Frozen shell snapshot |
 
-No `origin`. Do not push unless asked.
+No `origin` — **yes there is**: `https://github.com/airvidcinematic-art/shakrafyr.git` (public). Push only when asked.
 
 ## Troubleshooting
 
